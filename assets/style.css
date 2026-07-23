@@ -1,0 +1,295 @@
+/* ============================================================
+   rm8tes.web — shared stylesheet
+   Palette + type lifted from the app (lib/theme.dart, Palette.darkMode).
+   Single dark theme by design — this is the app's arcade identity, and
+   a CRT has no light mode. Colours are set explicitly so the page holds
+   its look regardless of the visitor's OS theme.
+   ============================================================ */
+
+@font-face{
+  font-family:"VT323";
+  src:url("fonts/VT323-Regular.ttf") format("truetype");
+  font-display:swap;
+}
+@font-face{
+  font-family:"PressStart2P";
+  src:url("fonts/PressStart2P-Regular.ttf") format("truetype");
+  font-display:swap;
+}
+
+:root{
+  --bg:#0d0820;         /* page background      (Palette.bg)     */
+  --card:#1a0f3a;       /* card / surface fill  (Palette.dark)   */
+  --card-2:#241650;     /* lifted inner surface (derived)        */
+  --border:#6b3fa0;     /* default borders      (Palette.purple) */
+  --line:#3a1f60;       /* subtle divider       (logoDeep)       */
+  --grape:#9b6dd4;      /* structural purple    (Palette.grape)  */
+  --lilac:#c49bf0;      /* secondary / body     (Palette.lilac)  */
+  --pale:#d4b8ff;       /* heading text         (Palette.pale)   */
+  --cyan:#00e8ff;       /* accent / labels      (Palette.cyan)   */
+  --cyan-ink:#0a1e2a;   /* dark ink on cyan     (Palette.cyanInk)*/
+  --cyan-deep:#007a88;  /* hard button shadow   (cyanShadow)     */
+  --pink:#ff6bdd;       /* live indicator       (Palette.pink)   */
+  --green:#44ff88;      /* success              (Palette.green)  */
+  --yellow:#ffe566;     /* highlight            (Palette.yellow) */
+  --prose:#e7ddf5;      /* long-form reading text (accent-tinted white) */
+  --glow-c:0 0 8px rgba(0,232,255,.45);
+  --glow-p:0 0 16px rgba(155,109,212,.35);
+  --glow-k:0 0 8px rgba(255,107,221,.55);
+  --font-term:"VT323", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-arcade:"PressStart2P", "VT323", monospace;
+  /* readable face for long-form legal prose — legibility beats novelty here */
+  --font-read:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0; background:var(--bg);}
+html{color-scheme:dark;}
+body{
+  color:var(--lilac);
+  font-family:var(--font-term);
+  -webkit-font-smoothing:antialiased;
+  min-height:100svh;
+}
+
+/* CRT overlay — scanlines + vignette. Decorative. */
+.crt{
+  position:fixed; inset:0; z-index:50; pointer-events:none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 120% at 50% 38%, transparent 55%, rgba(3,1,12,.62) 100%);
+  mix-blend-mode:multiply;
+}
+
+/* ---- device shell (shared) ---- */
+.device{
+  position:relative; z-index:1;
+  min-height:100svh;
+  max-width:1440px; margin-inline:auto;
+  display:flex; flex-direction:column;
+  padding:clamp(14px,2.4vw,26px);
+  font-size:clamp(16px,.55vw + 15px,20px);
+}
+.device.doc{max-width:1040px;}   /* narrower shell for reading pages */
+
+/* ---- status bar ---- */
+.statusbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  padding-bottom:12px; border-bottom:1px solid var(--line);
+}
+.brand{display:flex; align-items:center; gap:9px; text-decoration:none;}
+.brand-mark{
+  width:26px; height:26px; border-radius:5px;
+  image-rendering:pixelated; box-shadow:0 0 0 1px var(--border);
+}
+.brand-text{
+  font-family:var(--font-arcade); font-size:clamp(13px,1.1vw,17px);
+  color:var(--pale); letter-spacing:.5px;
+  /* pixel extrusion, echoing the app logo's logoMid / logoDeep layers */
+  text-shadow:2px 2px 0 var(--grape), 3px 3px 0 var(--line);
+}
+.brand:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+.readout{
+  font-size:1.05em; color:var(--lilac);
+  letter-spacing:.10em; text-transform:uppercase;
+  font-variant-numeric:tabular-nums;
+}
+.rec{color:var(--pink); text-shadow:var(--glow-k); animation:blink 1.1s steps(1) infinite;}
+
+/* ---- footer ---- */
+.footerbar{
+  display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+  padding-top:12px; border-top:1px solid var(--line);
+  font-size:1.02em; letter-spacing:.08em; text-transform:uppercase; color:var(--lilac);
+}
+.footerbar nav{display:flex; gap:18px; flex-wrap:wrap;}
+.footerbar a{color:var(--grape); text-decoration:none;}
+.footerbar a:hover{color:var(--cyan);}
+.footerbar a:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+
+/* ---- buttons (shared) ---- */
+.btn{
+  font-family:var(--font-term); font-size:1.16em;
+  text-transform:uppercase; letter-spacing:.10em;
+  padding:.5em 1.15em; border-radius:2px; cursor:pointer;
+  text-decoration:none; border:0; display:inline-block;
+  transition:transform .09s ease, box-shadow .09s ease, background .15s ease, color .15s ease;
+}
+.btn.primary{background:var(--cyan); color:var(--cyan-ink); box-shadow:4px 4px 0 var(--cyan-deep);}
+.btn.primary:hover{transform:translate(1px,1px); box-shadow:3px 3px 0 var(--cyan-deep);}
+.btn.primary:active{transform:translate(4px,4px); box-shadow:0 0 0 var(--cyan-deep);}
+.btn.ghost{background:transparent; color:var(--pale); border:2px solid var(--border); box-shadow:4px 4px 0 var(--line);}
+.btn.ghost:hover{color:var(--cyan); border-color:var(--grape); transform:translate(1px,1px); box-shadow:3px 3px 0 var(--line);}
+.btn.ghost:active{transform:translate(4px,4px); box-shadow:0 0 0 var(--line);}
+.btn:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+
+/* ============================================================
+   Landing hero
+   ============================================================ */
+.stage{
+  flex:1;
+  display:grid; grid-template-columns:1.1fr .9fr;
+  align-items:center; gap:clamp(24px,4vw,56px);
+  padding:clamp(24px,4vh,56px) 0;
+}
+.pitch{animation:boot .6s ease-out both;}
+.eyebrow{
+  margin:0 0 18px; font-size:1.05em;
+  color:var(--lilac); letter-spacing:.24em; text-transform:uppercase;
+}
+.eyebrow b{color:var(--cyan); font-weight:normal; text-shadow:var(--glow-c);}
+h1.hero{
+  margin:0; max-width:15ch; font-weight:normal;
+  font-size:clamp(2.9rem,5.6vw,4.5rem); line-height:.96;
+  letter-spacing:.005em; text-wrap:balance;
+  color:var(--pale); text-shadow:var(--glow-p);
+}
+h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
+.sub{
+  margin:22px 0 0; max-width:44ch;
+  font-size:1.34em; line-height:1.32; color:var(--lilac);
+}
+.sub b{color:var(--pale); font-weight:normal;}
+.cta{display:flex; flex-wrap:wrap; gap:16px; margin-top:30px;}
+.statusline{
+  margin:26px 0 0; font-size:1.12em; color:var(--lilac);
+  letter-spacing:.04em; opacity:.8;
+}
+.cursor{color:var(--cyan); text-shadow:var(--glow-c); animation:blink 1s steps(1) infinite;}
+
+/* evidence record card */
+.record{
+  animation:boot .6s ease-out .08s both;
+  background:var(--card); border:2px solid var(--border); border-radius:3px;
+  padding:16px;
+  box-shadow:8px 8px 0 var(--line), 0 26px 60px rgba(0,0,0,.55);
+}
+.record-head{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:1.05em; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--lilac); padding-bottom:12px; border-bottom:1px solid var(--line);
+}
+.record-head b{color:var(--cyan); font-weight:normal; text-shadow:var(--glow-c);}
+.frame{
+  position:relative; margin:14px 0;
+  display:grid; grid-template-columns:1fr 1fr;
+  aspect-ratio:4/3; overflow:hidden; border-radius:2px;
+  background:var(--card-2);
+}
+.half{
+  position:relative;
+  background-image:radial-gradient(circle, rgba(0,232,255,.13) 1px, transparent 1.4px);
+  background-size:15px 15px;
+}
+.half.after{background-color:rgba(0,232,255,.03); border-left:1px dashed var(--border);}
+.half::before{
+  content:""; position:absolute; top:50%; left:50%; width:22px; height:22px;
+  transform:translate(-50%,-50%);
+  background:
+    linear-gradient(var(--grape),var(--grape)) 50% 0/1px 100% no-repeat,
+    linear-gradient(var(--grape),var(--grape)) 0 50%/100% 1px no-repeat;
+  opacity:.7;
+}
+.tag{
+  position:absolute; left:10px; bottom:9px;
+  font-size:.92em; letter-spacing:.11em; text-transform:uppercase;
+  color:var(--cyan); text-shadow:var(--glow-c);
+}
+.tag small{display:block; color:var(--lilac); text-shadow:none; letter-spacing:.08em;}
+.frame::after{
+  content:""; position:absolute; inset:9px; pointer-events:none;
+  background:
+    linear-gradient(var(--cyan),var(--cyan)) left top/16px 2px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) left top/2px 16px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) right top/16px 2px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) right top/2px 16px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) left bottom/16px 2px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) left bottom/2px 16px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) right bottom/16px 2px no-repeat,
+    linear-gradient(var(--cyan),var(--cyan)) right bottom/2px 16px no-repeat;
+  opacity:.85;
+}
+.mirror{
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); z-index:2;
+  font-size:.82em; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--cyan); background:var(--bg);
+  border:1px solid var(--border); border-radius:999px;
+  padding:3px 9px; text-shadow:var(--glow-c);
+}
+.meta{margin:0; display:grid; gap:7px;}
+.meta > div{display:grid; grid-template-columns:74px 1fr; align-items:baseline; gap:10px;}
+.meta dt{color:var(--cyan); letter-spacing:.14em; text-transform:uppercase; font-size:.96em;}
+.meta dd{margin:0; color:var(--pale); font-variant-numeric:tabular-nums; letter-spacing:.02em;}
+.meta dd.ok{color:var(--green); text-shadow:0 0 8px rgba(68,255,136,.5);}
+
+/* ============================================================
+   Legal / document pages
+   ============================================================ */
+.doc-main{flex:1; padding:clamp(28px,5vh,64px) 0;}
+.doc{
+  max-width:70ch; margin-inline:auto;
+  font-family:var(--font-read); color:var(--prose);
+  font-size:1.02rem; line-height:1.62;
+}
+.doc h1{
+  font-family:var(--font-term); font-weight:normal;
+  font-size:clamp(2rem,5vw,2.9rem); line-height:1.05;
+  color:var(--pale); text-shadow:var(--glow-p);
+  margin:.1em 0 .3em;
+}
+.doc h2{
+  font-family:var(--font-term); font-weight:normal;
+  font-size:clamp(1.5rem,3.4vw,1.95rem); line-height:1.15;
+  color:var(--cyan); text-shadow:var(--glow-c);
+  letter-spacing:.02em;
+  margin:1.9em 0 .5em; padding-bottom:.2em; border-bottom:1px solid var(--line);
+}
+.doc h3{
+  font-family:var(--font-term); font-weight:normal;
+  font-size:1.4rem; color:var(--pale);
+  margin:1.5em 0 .3em;
+}
+.doc p{margin:0 0 1em;}
+.doc ul{margin:0 0 1em; padding-left:1.3em;}
+.doc li{margin:.4em 0;}
+.doc li::marker{color:var(--cyan);}
+.doc a{color:var(--cyan); text-decoration:underline; text-underline-offset:2px; text-decoration-thickness:1px;}
+.doc a:hover{color:var(--pale);}
+.doc strong{color:var(--pale); font-weight:600;}
+.doc code{
+  font-family:var(--font-term); font-size:1.08em;
+  color:var(--yellow); background:var(--card);
+  padding:0 .3em; border-radius:2px;
+}
+/* the DRAFT notice comes through as a blockquote */
+.doc blockquote{
+  margin:1.5em 0; padding:.9em 1.1em;
+  border-left:3px solid var(--pink); background:rgba(255,107,221,.09);
+  color:var(--pale); border-radius:2px;
+}
+.doc blockquote p{margin:0;}
+.doc blockquote strong{color:var(--pink);}
+/* highlight for the [PLACEHOLDERS] that must be filled before publishing */
+.doc mark.fill{
+  background:rgba(255,229,102,.16); color:var(--yellow);
+  border:1px dashed rgba(255,229,102,.55); border-radius:2px;
+  padding:0 .28em; font-family:var(--font-term); font-size:1.05em;
+  white-space:nowrap;
+}
+.doc .back{margin:2.4em 0 0;}
+
+/* ============================================================
+   Motion + responsive
+   ============================================================ */
+@keyframes blink{50%{opacity:.15;}}
+@keyframes boot{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+
+@media (max-width:840px){
+  .stage{grid-template-columns:1fr; align-items:start; gap:34px; padding:26px 0;}
+  .record{max-width:460px;}
+}
+@media (prefers-reduced-motion:reduce){
+  .rec,.cursor{animation:none;}
+  .pitch,.record{animation:none;}
+  .btn{transition:none;}
+}
