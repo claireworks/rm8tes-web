@@ -62,6 +62,44 @@
     </aside>
   </section>
 
+  <section class="how" id="how">
+    <div class="how-head">
+      <p class="eyebrow">Evidence &middot; <b>How it works</b></p>
+      <h2>You shouldn&rsquo;t have to trust us</h2>
+      <p class="how-lede">Anyone can call their photos tamper-proof. The question a deposit scheme actually asks is harder: <b>could this have been changed afterwards?</b> Here is how rm8tes answers that&mdash;and how you can check the answer without taking our word for any of it.</p>
+    </div>
+
+    <ol class="steps">
+      <li class="step">
+        <span class="step-n">01</span>
+        <h3>Fingerprinted as you shoot</h3>
+        <p>The moment you take a photo, your phone computes its SHA&#8209;256 fingerprint&mdash;a 64&#8209;character code that changes completely if so much as one pixel moves.</p>
+      </li>
+      <li class="step">
+        <span class="step-n">02</span>
+        <h3>Checked, not just claimed</h3>
+        <p>Our server recomputes that fingerprint from the file it actually received, and rejects the record if the two disagree. <b>A fingerprint the app alone decides is worth nothing</b>&mdash;a tampered app would simply send whatever suited it.</p>
+      </li>
+      <li class="step">
+        <span class="step-n">03</span>
+        <h3>Locked, then sealed</h3>
+        <p>Once stored, a photo cannot be edited, swapped or quietly retaken. Finish your move-in and that whole set seals shut; move-out seals the same way. That is what stops &ldquo;move-in photos&rdquo; appearing months into a dispute&mdash;usually the first thing a landlord will suggest.</p>
+      </li>
+      <li class="step">
+        <span class="step-n">04</span>
+        <h3>Anchored to Bitcoin</h3>
+        <p>Roughly once an hour we fold every new record&rsquo;s fingerprint into a single code and timestamp it into the Bitcoin blockchain using OpenTimestamps, a free and open-source standard. Once that block is mined the code is fixed in a public ledger <b>nobody controls&mdash;not your landlord, and not us</b>.</p>
+      </li>
+    </ol>
+
+    <div class="verify">
+      <h3>&#10003; Check it yourself</h3>
+      <p>Your evidence pack prints every fingerprint in full, the steps linking your photo to its Bitcoin timestamp, and instructions for confirming them with free, open-source tools. Those tools talk to the public timestamp servers and to Bitcoin directly&mdash;<b>they never contact rm8tes</b>. If we altered one of your records, the check would fail, and you would be the one holding the proof.</p>
+    </div>
+
+    <p class="limits"><b>Where the line is.</b> This proves your photos existed, exactly as they are, before a particular Bitcoin block was mined, and that nobody has changed them since&mdash;us included. It cannot prove what a camera was pointed at, and a phone&rsquo;s clock is set by whoever owns the phone, so your pack shows our server&rsquo;s timestamp as the one that carries weight and labels the device&rsquo;s own clock as context. We would rather tell you where that line sits than have a landlord&rsquo;s solicitor find it for you.</p>
+  </section>
+
   <footer class="footerbar">
     <nav>
       <a href="privacy/">Privacy</a>

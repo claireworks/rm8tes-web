@@ -223,6 +223,73 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .meta dd.ok{color:var(--green); text-shadow:0 0 8px rgba(68,255,136,.5);}
 
 /* ============================================================
+   "How it works" — the integrity explainer
+   Sits below the hero, so it reads at a comfortable prose width
+   rather than inheriting the hero's two-column stage.
+   ============================================================ */
+.how{
+  padding:clamp(30px,6vh,72px) 0 clamp(20px,4vh,48px);
+  border-top:1px solid var(--line);
+}
+.how-head{max-width:62ch;}
+.how h2{
+  font-family:var(--font-term); font-weight:normal;
+  font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.1;
+  color:var(--pale); text-shadow:var(--glow-p);
+  margin:0 0 .35em;
+}
+.how-lede{margin:0; color:var(--lilac); font-size:1.06em; line-height:1.55;}
+
+.steps{
+  list-style:none; margin:34px 0 0; padding:0;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr));
+  gap:16px;
+}
+.step{
+  background:var(--card); border:2px solid var(--border);
+  box-shadow:4px 4px 0 var(--line);
+  padding:18px 18px 20px;
+}
+.step-n{
+  display:block; font-family:var(--font-arcade); font-size:.62rem;
+  color:var(--cyan); text-shadow:var(--glow-c); letter-spacing:.1em;
+  margin-bottom:10px;
+}
+.step h3{
+  margin:0 0 8px; font-family:var(--font-term); font-weight:normal;
+  font-size:1.32rem; line-height:1.2; color:var(--pale);
+}
+.step p{margin:0; color:var(--lilac); line-height:1.5;}
+.step b{color:var(--pale); font-weight:normal;}
+
+/* The payoff: a check the visitor runs without us being involved. */
+.verify{
+  margin-top:22px; padding:18px 20px; max-width:74ch;
+  background:var(--card-2); border:2px solid var(--grape);
+  box-shadow:4px 4px 0 var(--line);
+}
+.verify h3{
+  margin:0 0 8px; font-family:var(--font-term); font-weight:normal;
+  font-size:1.32rem; color:var(--green);
+  text-shadow:0 0 8px rgba(68,255,136,.45);
+}
+.verify p{margin:0; color:var(--prose); line-height:1.6;}
+.verify b{color:var(--pale); font-weight:normal;}
+
+/* Deliberately plain. The limits of the claim should not read as a sales
+   pitch, and an adjudicator may well end up on this page. */
+.limits{
+  margin:22px 0 0; max-width:74ch;
+  padding-left:14px; border-left:3px solid var(--border);
+  color:var(--lilac); font-size:.98em; line-height:1.6;
+}
+.limits b{color:var(--yellow); font-weight:normal;}
+
+@media (max-width:840px){
+  .steps{grid-template-columns:1fr;}
+}
+
+/* ============================================================
    Legal / document pages
    ============================================================ */
 .doc-main{flex:1; padding:clamp(28px,5vh,64px) 0;}
