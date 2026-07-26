@@ -308,6 +308,11 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 
 .join-form{position:relative; display:flex; flex-wrap:wrap; gap:12px; max-width:520px;}
 .join-form .hp{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;}
+/* Turnstile runs in interaction-only mode, so this is usually empty and takes
+   no room. It only becomes a visible widget when Cloudflare wants a challenge,
+   at which point it needs its own row under the field and button. */
+.join-form .turnstile-host{flex-basis:100%; line-height:0;}
+.join-form .turnstile-host:empty{display:none;}
 .join-form input[type="email"]{
   flex:1 1 240px; min-width:0;
   font-family:var(--font-term); font-size:1.16em; color:var(--pale);

@@ -70,6 +70,7 @@
       <label for="beta-email" class="visually-hidden">Email address</label>
       <input type="email" id="beta-email" name="email" placeholder="you@email.com" required>
       <button type="submit" class="btn primary">Notify me</button>
+      <div id="beta-turnstile" class="turnstile-host"></div>
     </form>
     <p class="form-status" id="beta-status" aria-live="polite"></p>
   </section>
@@ -128,8 +129,17 @@
 
 <script>
 (function(){
-  var SUPABASE_URL = "https://iqpmsuoxylfniayrntfm.supabase.co";
-  var SUPABASE_ANON_KEY = "sb_publishable_wolgV8yymzzXXl4MxvhwnQ_q_jBkpos";
+  // Posts to the beta-signup Edge Function, not to /rest/v1/beta_signups. The
+  // table no longer accepts writes from the anon key: PostgREST cannot check a
+  // CAPTCHA, so anything it will accept, a script will accept. The function
+  // redeems the Turnstile token server-side and is the table's only writer.
+  var SIGNUP_URL = "https://iqpmsuoxylfniayrntfm.supabase.co/functions/v1/beta-signup";
+
+  // TODO: replace with the sitekey of the Turnstile widget for this site.
+  // Deliberately NOT the app's key (0x4AAAAAAD-…): that one is registered to
+  // different hostnames and runs in Invisible mode, which has no way to show a
+  // challenge. This widget needs to be able to escalate to one.
+  var TURNSTILE_SITE_KEY = "TURNSTILE_SITE_KEY_PLACEHOLDER";
 
   var form = document.getElementById("beta-form");
   var email = document.getElementById("beta-email");
@@ -137,9 +147,77 @@
   var button = form.querySelector("button");
   var status = document.getElementById("beta-status");
 
+  var widgetId = null;
+  var awaitingToken = false;
+
   function setStatus(text, kind){
     status.textContent = text;
     status.className = "form-status" + (kind ? " " + kind : "");
+  }
+
+  // Called by the Turnstile script once it has loaded. Explicit rendering keeps
+  // the sitekey in this config block rather than in the markup.
+  window.onTurnstileLoad = function(){
+    widgetId = window.turnstile.render("#beta-turnstile", {
+      sitekey: TURNSTILE_SITE_KEY,
+      // Stays out of the way until Cloudflare actually wants a challenge, and
+      // can still show one when it does.
+      appearance: "interaction-only",
+      theme: "dark",
+      // Tokens lapse after a few minutes and people linger on landing pages.
+      "refresh-expired": "auto",
+      callback: function(token){
+        // A challenge the visitor solved after pressing the button: finish the
+        // submission they already asked for.
+        if (awaitingToken) {
+          awaitingToken = false;
+          send(token);
+        }
+      },
+      "error-callback": function(){
+        awaitingToken = false;
+        button.disabled = false;
+        setStatus("Couldn't run the human check — please reload and try again.", "err");
+      }
+    });
+  };
+
+  function send(token){
+    button.disabled = true;
+    setStatus("Submitting…");
+
+    fetch(SIGNUP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email.value.trim(),
+        turnstile_token: token,
+        company: honeypot.value
+      })
+    }).then(function(res){
+      button.disabled = false;
+      // Tokens are single-use, so every attempt needs a fresh one.
+      if (widgetId !== null) window.turnstile.reset(widgetId);
+
+      if (res.status === 200) {
+        // Covers "already on the list" too — the function answers both the same
+        // way on purpose, so this form can't be used to test who has signed up.
+        setStatus("You're on the list — we'll email you the link.", "ok");
+        form.reset();
+      } else if (res.status === 429) {
+        setStatus("Too many attempts — please try again in a few minutes.", "err");
+      } else if (res.status === 403) {
+        setStatus("We couldn't verify you're human — please try again.", "err");
+      } else if (res.status === 400) {
+        setStatus("Please check that address and try again.", "err");
+      } else {
+        setStatus("Something went wrong — please try again.", "err");
+      }
+    }).catch(function(){
+      button.disabled = false;
+      if (widgetId !== null) window.turnstile.reset(widgetId);
+      setStatus("Something went wrong — please try again.", "err");
+    });
   }
 
   form.addEventListener("submit", function(e){
@@ -151,37 +229,27 @@
       return;
     }
 
-    button.disabled = true;
-    setStatus("Submitting…");
+    if (!window.turnstile || widgetId === null) {
+      setStatus("Still loading the human check — one moment, then try again.", "err");
+      return;
+    }
 
-    fetch(SUPABASE_URL + "/rest/v1/beta_signups", {
-      method: "POST",
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify({ email: email.value.trim() })
-    }).then(function(res){
-      button.disabled = false;
-      if (res.status === 201) {
-        setStatus("You're on the list — we'll email you the link.", "ok");
-        form.reset();
-      } else if (res.status === 409) {
-        setStatus("You're already on the list.", "ok");
-      } else if (res.status === 429) {
-        setStatus("Too many attempts — please try again in a few minutes.", "err");
-      } else {
-        setStatus("Something went wrong — please try again.", "err");
-      }
-    }).catch(function(){
-      button.disabled = false;
-      setStatus("Something went wrong — please try again.", "err");
-    });
+    var token = window.turnstile.getResponse(widgetId);
+    if (token) {
+      send(token);
+      return;
+    }
+
+    // No token yet: either the check is still running, or Cloudflare wants an
+    // interaction. Hand off to the callback above, which submits when it lands.
+    awaitingToken = true;
+    button.disabled = true;
+    setStatus("Checking you're human…");
   });
 })();
 </script>
+<!-- After the block above, so window.onTurnstileLoad exists when this runs. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>
 
 </body>
 </html>
