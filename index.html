@@ -61,6 +61,19 @@
     </aside>
   </section>
 
+  <section class="join" id="join">
+    <p class="eyebrow">Evidence Terminal &middot; <b>Beta Access</b></p>
+    <h2>Get the link the moment it&rsquo;s ready</h2>
+    <p class="join-lede">Leave your email and we&rsquo;ll send you the beta link as soon as it&rsquo;s live. One email, no spam &mdash; see the <a href="privacy/#beta-waitlist">Privacy Policy</a>.</p>
+    <form class="join-form" id="beta-form" novalidate>
+      <input type="text" name="company" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label for="beta-email" class="visually-hidden">Email address</label>
+      <input type="email" id="beta-email" name="email" placeholder="you@email.com" required>
+      <button type="submit" class="btn primary">Notify me</button>
+    </form>
+    <p class="form-status" id="beta-status" aria-live="polite"></p>
+  </section>
+
   <section class="how" id="how">
     <div class="how-head">
       <p class="eyebrow">Evidence &middot; <b>How it works</b></p>
@@ -112,6 +125,63 @@
     <span>&copy; 2026 Roomates Ltd, trading as rm8tes &middot; built for renters</span>
   </footer>
 </main>
+
+<script>
+(function(){
+  var SUPABASE_URL = "https://iqpmsuoxylfniayrntfm.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_wolgV8yymzzXXl4MxvhwnQ_q_jBkpos";
+
+  var form = document.getElementById("beta-form");
+  var email = document.getElementById("beta-email");
+  var honeypot = form.elements.company;
+  var button = form.querySelector("button");
+  var status = document.getElementById("beta-status");
+
+  function setStatus(text, kind){
+    status.textContent = text;
+    status.className = "form-status" + (kind ? " " + kind : "");
+  }
+
+  form.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    if (honeypot.value) {
+      setStatus("You're on the list — we'll email you the link.", "ok");
+      form.reset();
+      return;
+    }
+
+    button.disabled = true;
+    setStatus("Submitting…");
+
+    fetch(SUPABASE_URL + "/rest/v1/beta_signups", {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({ email: email.value.trim() })
+    }).then(function(res){
+      button.disabled = false;
+      if (res.status === 201) {
+        setStatus("You're on the list — we'll email you the link.", "ok");
+        form.reset();
+      } else if (res.status === 409) {
+        setStatus("You're already on the list.", "ok");
+      } else if (res.status === 429) {
+        setStatus("Too many attempts — please try again in a few minutes.", "err");
+      } else {
+        setStatus("Something went wrong — please try again.", "err");
+      }
+    }).catch(function(){
+      button.disabled = false;
+      setStatus("Something went wrong — please try again.", "err");
+    });
+  });
+})();
+</script>
 
 </body>
 </html>

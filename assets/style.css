@@ -290,6 +290,53 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 }
 
 /* ============================================================
+   "Join the beta" — email capture
+   ============================================================ */
+.join{
+  padding:clamp(30px,6vh,72px) 0 clamp(20px,4vh,48px);
+  border-top:1px solid var(--line);
+}
+.join h2{
+  font-family:var(--font-term); font-weight:normal;
+  font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.1;
+  color:var(--pale); text-shadow:var(--glow-p);
+  margin:0 0 .35em;
+}
+.join-lede{margin:0 0 24px; max-width:62ch; color:var(--lilac); font-size:1.06em; line-height:1.55;}
+.join-lede a{color:var(--cyan);}
+.join-lede a:hover{color:var(--pale);}
+
+.join-form{position:relative; display:flex; flex-wrap:wrap; gap:12px; max-width:520px;}
+.join-form .hp{position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;}
+.join-form input[type="email"]{
+  flex:1 1 240px; min-width:0;
+  font-family:var(--font-term); font-size:1.16em; color:var(--pale);
+  background:var(--card-2); border:2px solid var(--border); border-radius:2px;
+  padding:.5em .8em;
+}
+.join-form input[type="email"]::placeholder{color:var(--lilac); opacity:.65;}
+.join-form input[type="email"]:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+.join-form button{flex:0 0 auto;}
+.join-form button:disabled{opacity:.6; cursor:default; transform:none; box-shadow:4px 4px 0 var(--cyan-deep);}
+
+.form-status{
+  margin:14px 0 0; min-height:1.4em;
+  font-size:1.02em; letter-spacing:.02em; color:var(--lilac);
+}
+.form-status.ok{color:var(--green); text-shadow:0 0 8px rgba(68,255,136,.4);}
+.form-status.err{color:var(--pink); text-shadow:0 0 8px rgba(255,107,221,.4);}
+
+.visually-hidden{
+  position:absolute; width:1px; height:1px;
+  padding:0; margin:-1px; overflow:hidden;
+  clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+@media (max-width:840px){
+  .join-form{flex-direction:column; align-items:stretch;}
+}
+
+/* ============================================================
    Legal / document pages
    ============================================================ */
 .doc-main{flex:1; padding:clamp(28px,5vh,64px) 0;}

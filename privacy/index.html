@@ -25,7 +25,7 @@
   <div class="doc-main">
     <article class="doc">
       <h1>Rm8tes Privacy Policy</h1>
-      <p><strong>Last updated: 25 July 2026</strong></p>
+      <p><strong>Last updated: 26 July 2026</strong></p>
       <p>Rm8tes is an app that helps renters in the UK protect their tenancy deposit: it captures move-in and move-out photo evidence, keeps a tenancy diary, and generates an evidence pack you can share with your landlord or a deposit scheme.</p>
       <p>This policy explains what personal information Rm8tes collects, why, where it is stored, and the choices and rights you have. We have tried to write it in plain English.</p>
       <p><strong>Who is responsible for your data (the "data controller"):</strong> Roomates Ltd, trading as Rm8tes — a company registered in England and Wales, company number <strong>16826260</strong>, registered office 35 Welbeck Avenue, Tunbridge Wells, England, TN4 9BD. Contact: <a href="mailto:rm8tes@gmail.com">rm8tes@gmail.com</a></p>
@@ -35,6 +35,8 @@
       <h2>Information we collect</h2>
       <h3>Account information</h3>
       <p>When you create an account we collect your <strong>email address</strong> and a <strong>password</strong>. Passwords are handled by our authentication provider (Supabase) and stored only in hashed form — we never see or store your plain-text password. Your email address is used to sign you in, to send account emails (such as email confirmation and password-reset links), and is stored alongside your profile. Those emails are delivered by an email provider outside our systems — see "Account emails" below.</p>
+      <h3 id="beta-waitlist">Beta waitlist</h3>
+      <p>If you submit your email address on our website's "Join the beta" form, we store only that email address, so we can send you a one-time link when the beta becomes available. It is kept in the same Supabase project and UK region as the rest of the data described in this policy, is not used for any other purpose, and is never shared, sold, or used for advertising. You can ask us to remove it at any time by emailing <a href="mailto:rm8tes@gmail.com">rm8tes@gmail.com</a>. To stop the form being abused for spam, we also briefly record the IP address a submission came from; this is kept for at most 24 hours and used only to limit repeated submissions.</p>
       <h3>Profile information</h3>
       <p>You can choose to add profile details: display name, age, whether you are a student or intern, gender, profession, general location (as free text, e.g. a city), monthly room budget, a short bio, lifestyle tags, and a profile photo. Apart from a display name, all of these are optional. Gender includes a "prefer not to say" option.</p>
       <p><strong>Profile photo:</strong> if you add one, it is stored in a publicly accessible storage bucket, which means anyone who has the photo's web address can view it. Do not upload a profile photo you would not want to be publicly visible.</p>
@@ -78,6 +80,7 @@
       <p>We keep your information for as long as your account exists, so that your evidence remains available for the length of your tenancy and any deposit dispute. When your account is deleted, or you ask us to erase your data, we delete your records from our live systems without undue delay.</p>
       <p>Copies of your data may survive for a short while in backups we keep so that the service can be recovered after a failure. We do not use those backups for anything else, and we cannot pick a single person's data out of one — instead, your data disappears from them as older backups are replaced by newer ones, which takes no more than <strong>30 days</strong>. In the unlikely event that we ever had to restore the service from a backup taken before your deletion, we would re-apply your deletion straight afterwards.</p>
       <p>Our email provider's record of the account emails we have sent you is deleted after 30 days, and everything held there would be deleted within 90 days if we stopped using the service.</p>
+      <p>Beta waitlist emails are kept until we send the beta invite or you ask us to remove them.</p>
       <p>Crash reports are deleted by Sentry automatically after 90 days. Usage analytics events are kept under their random identifier so we can see longer-term trends; when we erase your data on request, this includes the analytics events linked to your account's identifier.</p>
       <h2>Your rights</h2>
       <p>Under UK GDPR you have the right to:</p>
