@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email confirmed — rm8tes</title>
+<meta name="description" content="Your rm8tes account email has been confirmed.">
+<!-- Transactional landing page: reached only from an emailed link, never from
+     the site itself. Keeping it out of the index avoids search results that
+     promise a confirmation to someone who hasn't got a link. -->
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<div class="crt" aria-hidden="true"></div>
+
+<main class="device doc">
+  <header class="statusbar">
+    <a class="brand" href="../" aria-label="rm8tes home">
+      <img class="brand-mark" src="../assets/img/icon.jpg" alt="" width="26" height="26">
+      <span class="brand-text">rm8tes</span>
+    </a>
+    <span class="readout">Account</span>
+  </header>
+
+  <div class="auth-main">
+    <!-- The sign-up case is the default markup, so the page still reads
+         correctly with JavaScript disabled. The script below only narrows the
+         wording for the other link types and for expired links. -->
+    <section class="auth-card" id="card">
+      <div class="auth-glyph" aria-hidden="true"></div>
+      <p class="auth-status" id="status">Confirmed</p>
+      <h1 id="headline">Your email is confirmed</h1>
+      <div class="auth-body" id="body">
+        <p>That&rsquo;s the last step. Head back to the <strong>rm8tes</strong> app on your phone and sign in with your email and password.</p>
+        <p>You can close this tab.</p>
+      </div>
+      <p class="auth-cta"><a class="btn ghost" href="../">Back to home</a></p>
+    </section>
+  </div>
+
+  <footer class="footerbar">
+    <nav>
+      <a href="../privacy/">Privacy</a>
+      <a href="../terms/">Terms</a>
+      <a href="../support/">Support</a>
+      <a href="../">Home</a>
+    </nav>
+    <span>&copy; 2026 Roomates Ltd, trading as rm8tes &middot; built for renters</span>
+  </footer>
+</main>
+
+<script>
+(function () {
+  // Supabase has already verified the link server-side before redirecting
+  // here. It reports what happened either in the fragment (implicit flow, and
+  // all error cases) or the query string (PKCE), so read both.
+  var params = new URLSearchParams(
+    window.location.hash.slice(1) || window.location.search.slice(1)
+  );
+
+  var COPY = {
+    recovery: {
+      status: 'Verified',
+      headline: 'Password reset link verified',
+      // Deliberately does not promise an in-app "set a new password" screen:
+      // the beta build has no recovery handler, so support does this by hand.
+      body: '<p>We&rsquo;ve confirmed it&rsquo;s you. Setting a new password isn&rsquo;t self-service during the private beta yet &mdash; email <a href="mailto:rm8tes@gmail.com">rm8tes@gmail.com</a> from this address and we&rsquo;ll sort it out for you.</p>'
+    },
+    email_change: {
+      status: 'Updated',
+      headline: 'Your email address is updated',
+      body: '<p>Your rm8tes account now uses this address. Sign in with it next time.</p><p>You can close this tab.</p>'
+    },
+    invite: {
+      status: 'Accepted',
+      headline: 'Your invite is accepted',
+      body: '<p>Welcome to the rm8tes beta. Open the <strong>rm8tes</strong> app on your phone to finish setting up your account.</p>'
+    }
+  };
+  COPY.email = COPY.email_change;  // older links use the short type name
+  COPY.magiclink = COPY.invite;
+
+  var ERRORS = {
+    otp_expired: {
+      status: 'Link expired',
+      headline: 'This link has expired',
+      body: '<p>Confirmation links are only valid for a short window. Open the <strong>rm8tes</strong> app and ask for a new one &mdash; it&rsquo;ll arrive in a moment.</p>'
+    }
+  };
+  var GENERIC_ERROR = {
+    status: 'Not accepted',
+    headline: 'This link didn&rsquo;t work',
+    body: '<p>It may have expired, or already been used. Open the <strong>rm8tes</strong> app and request a new link.</p><p>If it keeps happening, email <a href="mailto:rm8tes@gmail.com">rm8tes@gmail.com</a>.</p>'
+  };
+
+  var state;
+  if (params.get('error') || params.get('error_code')) {
+    // Only ever render our own copy, never the error_description off the URL —
+    // that text is attacker-controllable and reads like a system fault anyway.
+    state = ERRORS[params.get('error_code')] || GENERIC_ERROR;
+    document.getElementById('card').classList.add('is-error');
+  } else {
+    state = COPY[params.get('type')];
+  }
+
+  if (state) {
+    var headline = document.getElementById('headline');
+    document.getElementById('status').textContent = state.status;
+    headline.innerHTML = state.headline;
+    document.getElementById('body').innerHTML = state.body;
+    document.title = headline.textContent + ' — rm8tes';
+  }
+
+  // Strip the fragment: it can carry access and refresh tokens, and there is
+  // no reason to leave those sitting in browser history or in a shared URL.
+  // (A future deep-link handoff would need to read them *before* this runs.)
+  if (window.history.replaceState && window.location.hash) {
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+})();
+</script>
+
+</body>
+</html>

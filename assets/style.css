@@ -398,6 +398,76 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .doc .back{margin:2.4em 0 0;}
 
 /* ============================================================
+   Auth landing (/confirmed/)
+   Where Supabase sends the browser after it has verified an emailed
+   link — sign-up confirmation, password reset, email change. The
+   verification already happened server-side by the time we render, so
+   this page only reports the outcome; it never holds a session.
+   ============================================================ */
+/* The explicit minmax(0,1fr) column gives the card's width:min(56ch,100%) a
+   definite width to resolve its percentage against, so the card can never
+   grow past the shell on a narrow screen. */
+.auth-main{
+  flex:1; display:grid; grid-template-columns:minmax(0,1fr);
+  place-items:center; padding:clamp(28px,6vh,72px) 0;
+}
+.auth-card{
+  animation:boot .6s ease-out both;
+  width:min(56ch,100%); text-align:center;
+  background:var(--card); border:2px solid var(--border); border-radius:3px;
+  padding:clamp(24px,4.5vw,38px);
+  box-shadow:8px 8px 0 var(--line), 0 26px 60px rgba(0,0,0,.55);
+}
+
+/* Tick is drawn rather than typed — the arcade face carries no check glyph. */
+.auth-glyph{
+  width:62px; height:62px; margin:0 auto 22px; position:relative;
+  border:2px solid var(--green); border-radius:3px;
+  box-shadow:0 0 18px rgba(68,255,136,.26), inset 0 0 18px rgba(68,255,136,.10);
+}
+.auth-glyph::before,.auth-glyph::after{content:""; position:absolute;}
+.auth-glyph::before{display:none;}
+.auth-glyph::after{
+  top:45%; left:50%; width:15px; height:29px;
+  border:solid var(--green); border-width:0 3px 3px 0;
+  transform:translate(-50%,-50%) rotate(45deg);
+}
+
+.auth-status{
+  margin:0 0 12px; font-size:1.02em; color:var(--green);
+  letter-spacing:.22em; text-transform:uppercase;
+  text-shadow:0 0 8px rgba(68,255,136,.45);
+}
+.auth-card h1{
+  margin:0 0 16px; font-weight:normal; text-wrap:balance;
+  font-size:clamp(1.85rem,4.6vw,2.5rem); line-height:1.06;
+  color:var(--pale); text-shadow:var(--glow-p);
+}
+.auth-body{
+  margin:0 auto; max-width:42ch;
+  font-family:var(--font-read); font-size:1rem; line-height:1.62; color:var(--prose);
+}
+.auth-body p{margin:0;}
+.auth-body p + p{margin-top:.9em;}
+.auth-body a{color:var(--cyan); text-decoration:underline; text-underline-offset:2px;}
+.auth-body a:hover{color:var(--pale);}
+.auth-cta{margin-top:26px;}
+
+/* Expired or already-used links land here too, with the reason in the URL. */
+.auth-card.is-error .auth-glyph{
+  border-color:var(--pink);
+  box-shadow:0 0 18px rgba(255,107,221,.26), inset 0 0 18px rgba(255,107,221,.10);
+}
+.auth-card.is-error .auth-glyph::before,
+.auth-card.is-error .auth-glyph::after{
+  display:block; top:50%; left:50%; width:30px; height:0;
+  border:0; border-top:3px solid var(--pink);
+  transform:translate(-50%,-50%) rotate(45deg);
+}
+.auth-card.is-error .auth-glyph::after{transform:translate(-50%,-50%) rotate(-45deg);}
+.auth-card.is-error .auth-status{color:var(--pink); text-shadow:var(--glow-k);}
+
+/* ============================================================
    Motion + responsive
    ============================================================ */
 @keyframes blink{50%{opacity:.15;}}
