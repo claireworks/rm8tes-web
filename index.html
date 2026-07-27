@@ -135,11 +135,11 @@
   // redeems the Turnstile token server-side and is the table's only writer.
   var SIGNUP_URL = "https://iqpmsuoxylfniayrntfm.supabase.co/functions/v1/beta-signup";
 
-  // TODO: replace with the sitekey of the Turnstile widget for this site.
-  // Deliberately NOT the app's key (0x4AAAAAAD-…): that one is registered to
-  // different hostnames and runs in Invisible mode, which has no way to show a
-  // challenge. This widget needs to be able to escalate to one.
-  var TURNSTILE_SITE_KEY = "TURNSTILE_SITE_KEY_PLACEHOLDER";
+  // Sitekey of the widget registered to this site's hostname. Deliberately NOT
+  // the app's key (0x4AAAAAAD-…): that one is registered to different hostnames
+  // and runs in Invisible mode, which has no way to show a challenge. This
+  // widget needs to be able to escalate to one.
+  var TURNSTILE_SITE_KEY = "0x4AAAAAAD_UKN88645Pta0A";
 
   var form = document.getElementById("beta-form");
   var email = document.getElementById("beta-email");
