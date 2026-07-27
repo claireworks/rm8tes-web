@@ -66,9 +66,12 @@
     recovery: {
       status: 'Verified',
       headline: 'Password reset link verified',
-      // Deliberately does not promise an in-app "set a new password" screen:
-      // the beta build has no recovery handler, so support does this by hand.
-      body: '<p>We&rsquo;ve confirmed it&rsquo;s you. Setting a new password isn&rsquo;t self-service during the private beta yet &mdash; email <a href="mailto:rm8tes@gmail.com">rm8tes@gmail.com</a> from this address and we&rsquo;ll sort it out for you.</p>'
+      // Reset is self-service in the app now: links carry a deep link back to
+      // it, so this page is no longer where recovery lands. It is still
+      // reached by links emailed before that shipped, and those cannot be
+      // redeemed here — the only way forward is a fresh link from a current
+      // build, so that is what this says.
+      body: '<p>We&rsquo;ve confirmed it&rsquo;s you, but this link is from an older version of the app and can&rsquo;t set your password here.</p><p>Update <strong>rm8tes</strong> on your phone, tap <strong>Forgot password?</strong> on the log-in screen, and the new link will open straight into the app. Still stuck? Email <a href="mailto:rm8tes@gmail.com">rm8tes@gmail.com</a> from this address.</p>'
     },
     email_change: {
       status: 'Updated',
