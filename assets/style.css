@@ -150,7 +150,16 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
   font-size:1.34em; line-height:1.32; color:var(--lilac);
 }
 .sub b{color:var(--pale); font-weight:normal;}
-.cta{display:flex; flex-wrap:wrap; gap:16px; margin-top:30px;}
+.cta{display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-top:30px;}
+/* Third-rank link. The integrity explainer used to be a button up here; the
+   household took its place, and this keeps the route to it without competing. */
+.cta .plain{
+  color:var(--lilac); text-decoration:none;
+  font-size:1.06em; letter-spacing:.06em;
+  border-bottom:1px solid var(--line);
+}
+.cta .plain:hover{color:var(--cyan); border-bottom-color:var(--grape);}
+.cta .plain:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
 .statusline{
   margin:26px 0 0; font-size:1.12em; color:var(--lilac);
   letter-spacing:.04em; opacity:.8;
@@ -170,6 +179,30 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
   color:var(--lilac); padding-bottom:12px; border-bottom:1px solid var(--line);
 }
 .record-head b{color:var(--cyan); font-weight:normal; text-shadow:var(--glow-c);}
+
+/* Who shares this vault. Sits directly under the record's title because the
+   household is now the first fact about a record, not a footnote to it. */
+.crew{
+  list-style:none; margin:12px 0 0; padding:0;
+  display:flex; flex-wrap:wrap; gap:8px 14px;
+}
+.mate{
+  display:flex; align-items:center; gap:7px;
+  font-size:.98em; letter-spacing:.10em; text-transform:uppercase;
+  color:var(--pale);
+}
+/* Pixel avatar: initials on a solid tile, one colour per flatmate, so three
+   people read as three people at a glance rather than three identical chips. */
+.pip{
+  width:24px; height:24px; border-radius:3px;
+  display:grid; place-items:center;
+  font-family:var(--font-arcade); font-size:.42rem; letter-spacing:0;
+  color:var(--cyan-ink); background:var(--grape);
+}
+.crew .mate:nth-child(1) .pip{background:var(--cyan);}
+.crew .mate:nth-child(2) .pip{background:var(--pink);}
+.crew .mate:nth-child(3) .pip{background:var(--yellow);}
+
 .frame{
   position:relative; margin:14px 0;
   display:grid; grid-template-columns:1fr 1fr;
@@ -222,6 +255,117 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .meta dd{margin:0; color:var(--pale); font-variant-numeric:tabular-nums; letter-spacing:.02em;}
 .meta dd.ok{color:var(--green); text-shadow:0 0 8px rgba(68,255,136,.5);}
 
+/* The seal, and what it cost to get there. Kept out of .meta because it is not
+   a field of the record — it is the household's agreement to close it. */
+.signoff{
+  margin:13px 0 0; padding-top:11px; border-top:1px solid var(--line);
+  font-size:1.02em; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--lilac);
+}
+.signoff .ticks{color:var(--green); text-shadow:0 0 8px rgba(68,255,136,.5); letter-spacing:-.06em;}
+.signoff b.ok{color:var(--green); font-weight:normal; text-shadow:0 0 8px rgba(68,255,136,.5);}
+
+/* ============================================================
+   Household — the shared vault
+   Mirrors the hero's two-column stage on purpose: the flatmates panel
+   is the app's own screen, so the page shows the thing it is describing
+   rather than asking the visitor to picture it.
+   ============================================================ */
+.household{
+  padding:clamp(30px,6vh,72px) 0 clamp(20px,4vh,48px);
+  border-top:1px solid var(--line);
+}
+.house-top{
+  display:grid; grid-template-columns:1.06fr .94fr;
+  align-items:center; gap:clamp(24px,4vw,52px);
+}
+.house-copy{max-width:60ch;}
+.house-copy .how-lede + .how-lede{margin-top:.9em;}
+.house-copy b{color:var(--pale); font-weight:normal;}
+
+/* The Flatmates screen, as it looks in the app. */
+.flatmates{
+  background:var(--card); border:2px solid var(--border); border-radius:3px;
+  padding:16px;
+  box-shadow:8px 8px 0 var(--line), 0 26px 60px rgba(0,0,0,.55);
+}
+/* Says what the ticks below are agreeing to — without it the panel shows a
+   verdict with no question, and reads as contradicting the sealed record in
+   the hero rather than as the audit before it. */
+.panel-note{
+  margin:12px 0 0; font-size:1.02em;
+  letter-spacing:.10em; text-transform:uppercase; color:var(--lilac);
+}
+.panel-note b{color:var(--yellow); font-weight:normal;}
+.roster{list-style:none; margin:10px 0 0; padding:0;}
+.roster li{
+  display:grid; grid-template-columns:auto 1fr auto;
+  align-items:center; gap:11px;
+  padding:9px 0; border-bottom:1px solid var(--line);
+}
+.roster li:last-child{border-bottom:0;}
+.roster .pip{width:28px; height:28px; font-size:.46rem;}
+.roster li:nth-child(1) .pip{background:var(--cyan);}
+.roster li:nth-child(2) .pip{background:var(--pink);}
+.roster li:nth-child(3) .pip{background:var(--yellow);}
+.who{display:grid; gap:2px; min-width:0;}
+.who b{
+  color:var(--pale); font-weight:normal; font-size:1.06em;
+  letter-spacing:.10em; text-transform:uppercase;
+}
+.who small{color:var(--lilac); font-size:.92em; letter-spacing:.06em; text-transform:uppercase;}
+.state{font-size:.98em; letter-spacing:.10em; text-transform:uppercase; white-space:nowrap;}
+.state.ok{color:var(--green); text-shadow:0 0 8px rgba(68,255,136,.45);}
+.state.wait{color:var(--grape);}
+
+/* The join code is the whole flow in eight characters, so it gets to be the
+   loudest thing in the panel. */
+.code{
+  margin-top:14px; padding:13px 14px; text-align:center;
+  background:var(--card-2); border:2px dashed var(--border); border-radius:2px;
+}
+.code-label{
+  display:block; font-size:.96em; letter-spacing:.20em;
+  text-transform:uppercase; color:var(--cyan); text-shadow:var(--glow-c);
+}
+.code strong{
+  display:block; margin:8px 0 5px;
+  font-family:var(--font-arcade); font-weight:normal;
+  font-size:clamp(.72rem,1.6vw,.95rem); letter-spacing:.06em;
+  color:var(--pale); text-shadow:2px 2px 0 var(--grape);
+}
+.code small{display:block; font-size:.94em; letter-spacing:.08em; text-transform:uppercase; color:var(--lilac);}
+
+/* The bonds carry a word where the steps carry a number — same arcade kicker,
+   because these are four facets of one thing rather than four stages of one. */
+.bond-n{text-transform:uppercase;}
+
+/* Two notes that carry the section's weight: the privacy of the crediting,
+   and where the product is heading. Styled apart from the cards so neither
+   reads as a fifth feature. */
+.credit{
+  margin:22px 0 0; max-width:74ch;
+  padding:16px 18px;
+  background:var(--card-2); border:2px solid var(--grape);
+  box-shadow:4px 4px 0 var(--line);
+  color:var(--prose); line-height:1.6;
+}
+.credit b{color:var(--cyan); font-weight:normal; text-shadow:var(--glow-c);}
+.credit a{color:var(--cyan);}
+.credit a:hover{color:var(--pale);}
+.next{
+  margin:22px 0 0; max-width:74ch;
+  padding-left:14px; border-left:3px solid var(--pink);
+  color:var(--lilac); font-size:1.02em; line-height:1.6;
+}
+.next b{color:var(--pink); font-weight:normal;}
+.next em{color:var(--pale); font-style:normal;}
+
+@media (max-width:840px){
+  .house-top{grid-template-columns:1fr; align-items:start; gap:30px;}
+  .flatmates{max-width:460px;}
+}
+
 /* ============================================================
    "How it works" — the integrity explainer
    Sits below the hero, so it reads at a comfortable prose width
@@ -232,7 +376,7 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
   border-top:1px solid var(--line);
 }
 .how-head{max-width:62ch;}
-.how h2{
+.how h2,.household h2{
   font-family:var(--font-term); font-weight:normal;
   font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.1;
   color:var(--pale); text-shadow:var(--glow-p);
@@ -240,27 +384,29 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 }
 .how-lede{margin:0; color:var(--lilac); font-size:1.06em; line-height:1.55;}
 
-.steps{
+/* .bonds — the household's four cards — is the same object as a step, so it
+   shares the grid and the card rather than growing a parallel set of rules. */
+.steps,.bonds{
   list-style:none; margin:34px 0 0; padding:0;
   display:grid; grid-template-columns:repeat(auto-fit,minmax(248px,1fr));
   gap:16px;
 }
-.step{
+.step,.bond{
   background:var(--card); border:2px solid var(--border);
   box-shadow:4px 4px 0 var(--line);
   padding:18px 18px 20px;
 }
-.step-n{
+.step-n,.bond-n{
   display:block; font-family:var(--font-arcade); font-size:.62rem;
   color:var(--cyan); text-shadow:var(--glow-c); letter-spacing:.1em;
   margin-bottom:10px;
 }
-.step h3{
+.step h3,.bond h3{
   margin:0 0 8px; font-family:var(--font-term); font-weight:normal;
   font-size:1.32rem; line-height:1.2; color:var(--pale);
 }
-.step p{margin:0; color:var(--lilac); line-height:1.5;}
-.step b{color:var(--pale); font-weight:normal;}
+.step p,.bond p{margin:0; color:var(--lilac); line-height:1.5;}
+.step b,.bond b{color:var(--pale); font-weight:normal;}
 
 /* The payoff: a check the visitor runs without us being involved. */
 .verify{
@@ -286,7 +432,7 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .limits b{color:var(--yellow); font-weight:normal;}
 
 @media (max-width:840px){
-  .steps{grid-template-columns:1fr;}
+  .steps,.bonds{grid-template-columns:1fr;}
 }
 
 /* ============================================================

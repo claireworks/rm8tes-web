@@ -1,7 +1,9 @@
 # rm8tes-web
 
 Marketing + legal site for **rm8tes** — the app that helps UK renters protect
-their tenancy deposit with move-in / move-out photo evidence.
+their tenancy deposit with move-in / move-out photo evidence, captured by the
+whole household rather than one person: flatmates share a vault through a join
+code, and an audit only seals once everybody agrees it is complete.
 
 Plain static HTML/CSS, no build step. Designed to be hosted on GitHub Pages.
 
