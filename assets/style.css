@@ -614,6 +614,156 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .auth-card.is-error .auth-status{color:var(--pink); text-shadow:var(--glow-k);}
 
 /* ============================================================
+   How-to guide (/how-to/)
+   The one page that is mostly pictures. Every screenshot is the real
+   app, rendered at 430×932 by test/screenshots.dart in the app repo
+   rather than photographed off a handset — so a step and its picture
+   cannot drift apart: change the screen, re-run the generator, drop
+   the files in. Instructions are set in the reading face for the same
+   reason the legal pages are: someone is following these with a phone
+   in the other hand.
+   ============================================================ */
+.device.guide{max-width:1180px;}
+.guide-main{flex:1; padding:clamp(28px,5vh,64px) 0;}
+.guide-head{max-width:60ch;}
+.guide-head h1{
+  margin:.1em 0 .3em; font-weight:normal; text-wrap:balance;
+  font-size:clamp(2rem,5vw,2.9rem); line-height:1.05;
+  color:var(--pale); text-shadow:var(--glow-p);
+}
+.guide-lede{
+  margin:0; font-family:var(--font-read); font-size:1.02rem; line-height:1.62;
+  color:var(--prose);
+}
+.guide-lede + .guide-lede{margin-top:.9em;}
+.guide-lede b{color:var(--pale); font-weight:600;}
+.guide-lede a{color:var(--cyan);}
+
+/* Jump list. Three parts, so it stays a row of chips rather than growing
+   into a table of contents nobody reads. */
+.guide-toc{display:flex; flex-wrap:wrap; gap:10px; margin:26px 0 0; padding:0; list-style:none;}
+.guide-toc a{
+  display:inline-block; padding:.45em .9em;
+  background:var(--card); border:2px solid var(--border); box-shadow:3px 3px 0 var(--line);
+  color:var(--lilac); text-decoration:none;
+  font-size:1.02em; letter-spacing:.08em; text-transform:uppercase;
+}
+.guide-toc a:hover{color:var(--cyan); border-color:var(--grape);}
+.guide-toc a:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+
+.guide-part{
+  margin-top:clamp(38px,7vh,80px); padding-top:clamp(24px,4vh,42px);
+  border-top:1px solid var(--line);
+  /* the anchor targets sit under nothing, but a little breathing room
+     keeps a jumped-to heading off the very top of the viewport */
+  scroll-margin-top:18px;
+}
+.part-n{
+  display:block; margin:0 0 12px;
+  font-family:var(--font-arcade); font-size:.62rem; letter-spacing:.1em;
+  color:var(--cyan); text-shadow:var(--glow-c);
+}
+.guide-part h2{
+  margin:0 0 .35em; font-family:var(--font-term); font-weight:normal;
+  font-size:clamp(1.7rem,4vw,2.4rem); line-height:1.1;
+  color:var(--pale); text-shadow:var(--glow-p);
+}
+.part-lede{
+  margin:0; max-width:64ch;
+  font-family:var(--font-read); font-size:1.02rem; line-height:1.62; color:var(--prose);
+}
+.part-lede + .part-lede{margin-top:.9em;}
+.part-lede b{color:var(--pale); font-weight:600;}
+.part-lede a{color:var(--cyan);}
+
+/* ---- one step: what to do, and the screen it happens on ----
+   Instruction above its picture rather than beside it. A phone screen is
+   twice as tall as it is wide and most of these steps are three lines, so
+   side-by-side left a column of dead space next to every one of them. */
+.gsteps{
+  list-style:none; margin:clamp(24px,4vh,40px) 0 0; padding:0;
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(30px,4vh,48px) clamp(24px,3vw,48px);
+  align-items:start;
+}
+.gstep{display:grid; gap:16px; justify-items:start;}
+/* A step with no screen of its own — the picture would only repeat the one
+   above it, so the text runs the full width instead of leaving a hole. */
+.gstep.wide{grid-column:1 / -1;}
+.gstep.wide .gstep-body{max-width:74ch;}
+.gstep-n{
+  display:block; margin:0 0 8px;
+  font-family:var(--font-arcade); font-size:.56rem; letter-spacing:.1em;
+  color:var(--grape);
+}
+.gstep h3{
+  margin:0 0 .4em; font-family:var(--font-term); font-weight:normal;
+  font-size:1.42rem; line-height:1.2; color:var(--pale);
+}
+.gstep-body{
+  max-width:56ch;
+  font-family:var(--font-read); font-size:1rem; line-height:1.62; color:var(--prose);
+}
+.gstep-body p{margin:0 0 .8em;}
+.gstep-body p:last-child{margin-bottom:0;}
+.gstep-body b{color:var(--pale); font-weight:600;}
+.gstep-body a{color:var(--cyan);}
+/* Button and field names, so a label on screen is recognisable as one in the
+   text. Same treatment the legal pages give <code>. */
+.gstep-body .ui{
+  font-family:var(--font-term); font-size:1.1em; letter-spacing:.04em;
+  color:var(--yellow); background:var(--card); padding:0 .3em; border-radius:2px;
+  white-space:nowrap;
+}
+.gstep-body ul{margin:0 0 .8em; padding-left:1.25em;}
+.gstep-body li{margin:.3em 0;}
+.gstep-body li::marker{color:var(--cyan);}
+
+/* ---- the screenshots ----
+   Held at ~70% of the phone's own width: any smaller and the app's own type
+   stops being readable, which is the whole reason the picture is here. */
+.shot{margin:0; width:min(300px,100%);}
+.shot img{
+  display:block; width:100%; height:auto;
+  border:2px solid var(--border); border-radius:5px; background:var(--bg);
+  box-shadow:6px 6px 0 var(--line), 0 20px 44px rgba(0,0,0,.5);
+}
+.shot figcaption{
+  margin-top:10px; font-size:.98em; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--lilac);
+}
+/* A crop rather than a whole screen — sits in the text column at its own
+   width, because blown up to phone width it would be all border. */
+.detail{margin:0 0 .9em; max-width:44ch;}
+.detail img{
+  display:block; width:100%; height:auto;
+  border:2px solid var(--line); border-radius:3px;
+}
+.detail figcaption{
+  margin-top:8px; font-size:.94em; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--lilac); font-family:var(--font-term);
+}
+
+/* Something the app will not let you undo, or a rule that bites later. */
+.warn{
+  margin:22px 0 0; max-width:74ch; padding:16px 18px;
+  background:var(--card-2); border:2px solid var(--grape); box-shadow:4px 4px 0 var(--line);
+  font-family:var(--font-read); font-size:1rem; line-height:1.6; color:var(--prose);
+}
+.warn b{color:var(--yellow); font-weight:600;}
+.warn a{color:var(--cyan);}
+
+.guide-main .back{
+  margin:2.6em 0 0; font-family:var(--font-read); font-size:1rem; color:var(--lilac);
+}
+.guide-main .back a{color:var(--cyan); text-decoration:underline; text-underline-offset:2px;}
+.guide-main .back a:hover{color:var(--pale);}
+
+@media (max-width:840px){
+  .gsteps{grid-template-columns:minmax(0,1fr);}
+}
+
+/* ============================================================
    Motion + responsive
    ============================================================ */
 @keyframes blink{50%{opacity:.15;}}
