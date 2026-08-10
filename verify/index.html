@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a record — rm8tes</title>
+<meta name="description" content="Check an rm8tes evidence record against the Bitcoin blockchain, in your own browser. Nothing here relies on rm8tes being truthful.">
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
+<link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+/* Page-scoped: none of this is reused anywhere else on the site, and the shared
+   sheet should stay shared. */
+.vform{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin:18px 0 6px;}
+.vform input{
+  flex:1 1 34ch; min-width:0;
+  font-family:var(--font-term); font-size:1.14rem; letter-spacing:.02em;
+  padding:.55em .7em; color:var(--prose);
+  background:var(--card); border:2px solid var(--border); border-radius:2px;
+}
+.vform input:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+.vhint{margin:0; color:var(--lilac); font-size:.95em;}
+
+.vbanner{
+  margin:22px 0 0; padding:14px 18px;
+  border:2px solid var(--border); border-left-width:6px; background:var(--card);
+  font-family:var(--font-term); font-size:1.3rem; letter-spacing:.04em;
+}
+.vbanner[data-state="verified"]{border-color:var(--green); color:var(--green);}
+.vbanner[data-state="pending"]{border-color:var(--yellow); color:var(--yellow);}
+.vbanner[data-state="failed"]{border-color:var(--pink); color:var(--pink);}
+.vbanner[data-state="unknown"],
+.vbanner[data-state="notfound"]{border-color:var(--grape); color:var(--pale);}
+.vbanner[data-state="running"]{border-color:var(--cyan); color:var(--cyan);}
+.vbanner small{display:block; margin-top:6px; font-size:.95rem; color:var(--prose); letter-spacing:0;}
+
+.vchecks{list-style:none; margin:18px 0 0; padding:0;}
+.vchecks li{
+  display:grid; grid-template-columns:1.7em 1fr; gap:10px;
+  padding:10px 0; border-top:1px solid var(--line);
+}
+.vchecks .mark{font-family:var(--font-term); font-size:1.3rem; line-height:1.2; text-align:center;}
+.vchecks li[data-ok="true"] .mark{color:var(--green);}
+.vchecks li[data-ok="false"] .mark{color:var(--pink);}
+.vchecks li[data-ok="wait"] .mark{color:var(--yellow);}
+.vchecks li[data-ok="idle"]{opacity:.45;}
+.vchecks .label{font-family:var(--font-term); font-size:1.16rem; color:var(--pale); letter-spacing:.03em;}
+.vchecks .detail{margin:3px 0 0; font-size:.95em; color:var(--lilac); line-height:1.55; overflow-wrap:anywhere;}
+
+.vfacts{margin:22px 0 0; border-top:1px solid var(--line);}
+.vfacts div{display:grid; grid-template-columns:14ch 1fr; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);}
+.vfacts dt{font-family:var(--font-term); font-size:1.05rem; color:var(--cyan); letter-spacing:.05em;}
+.vfacts dd{margin:0; font-family:var(--font-term); font-size:1.05rem; color:var(--prose); overflow-wrap:anywhere;}
+.vfacts a{color:var(--pale);}
+
+.vdl{display:flex; gap:12px; flex-wrap:wrap; margin:18px 0 0;}
+@media (max-width:560px){
+  .vfacts div{grid-template-columns:1fr; gap:2px;}
+}
+</style>
+</head>
+<body>
+
+<div class="crt" aria-hidden="true"></div>
+
+<main class="device doc">
+  <header class="statusbar">
+    <a class="brand" href="../" aria-label="rm8tes home">
+      <img class="brand-mark" src="../assets/img/icon.jpg" alt="" width="26" height="26">
+      <span class="brand-text">rm8tes</span>
+    </a>
+    <span class="readout">Verify</span>
+  </header>
+
+  <div class="doc-main">
+    <article class="doc">
+      <h1>Check a record against Bitcoin</h1>
+
+      <p>Every photograph and diary entry recorded in rm8tes is hashed, and those hashes are gathered hourly into a single fingerprint that is timestamped into the <strong>Bitcoin blockchain</strong>. This page checks one record against that blockchain.</p>
+
+      <p>The check runs entirely in your browser. rm8tes serves two small files and is not told the answer; the block itself is read from two independent public block explorers. <strong>Nothing on this page relies on rm8tes being truthful.</strong></p>
+
+      <form class="vform" id="form">
+        <label class="visually-hidden" for="hash">Record hash</label>
+        <input id="hash" name="hash" type="text" inputmode="latin" autocapitalize="off"
+               autocorrect="off" spellcheck="false" placeholder="paste the record hash"
+               pattern="[0-9a-fA-F]{64}" required>
+        <button class="btn primary" type="submit">Check</button>
+      </form>
+      <p class="vhint">A record hash is 64 letters and numbers. You will find one under every record in section&nbsp;5 of an rm8tes evidence pack, printed as <b>= record hash</b>, and in the QR code beside it.</p>
+
+      <div id="out" hidden>
+        <p class="vbanner" id="banner" data-state="running" role="status" aria-live="polite"></p>
+
+        <ul class="vchecks" id="checks"></ul>
+
+        <dl class="vfacts" id="facts"></dl>
+
+        <div class="vdl" id="downloads" hidden>
+          <a class="btn primary" id="dl-ots" download>Download the .ots proof</a>
+          <a class="btn primary" id="dl-root" download>Download the root</a>
+        </div>
+        <p class="vhint" id="dl-hint" hidden>Both files together let you re-run this check with the standard OpenTimestamps client instead of trusting this page: <b>ots verify &lt;file&gt;.bin.ots</b>. It is free and open source, talks to the calendars and the blockchain directly, and does not contact rm8tes.</p>
+      </div>
+
+      <h2>What this proves</h2>
+      <p>A Bitcoin block cannot be altered after the fact without redoing every block mined since. So if the fingerprint covering a record is inside a block, that record <strong>existed before that block was mined</strong> — and no amount of later argument between a tenant and a landlord can move it.</p>
+
+      <p class="limits">
+        <b>What it does not prove.</b> That the photograph shows what it claims to show, that the place is the place, or that anybody was honest. A timestamp establishes when a record existed and that it has not changed since — nothing more. rm8tes records the time its own server received a photograph and, where the phone reported one, a satellite position; both are stated in the evidence pack for what they are.
+      </p>
+
+      <h2>The chain of reasoning</h2>
+      <p>Each step below is arithmetic you can repeat yourself.</p>
+      <ol>
+        <li><b>The record hash</b> is a SHA-256 fingerprint of the record. The evidence pack prints every field that went into it, so you can recompute it from the page and confirm it matches.</li>
+        <li><b>The sibling path</b> folds that hash together with a handful of neighbours, under the scheme used by Certificate Transparency, until it produces the batch fingerprint — the <b>Merkle root</b>. You never see anybody else&rsquo;s records, only fingerprints of them.</li>
+        <li><b>The OpenTimestamps proof</b> is a published, open-standard chain of operations leading from that root to a Bitcoin block. Following it arrives at a value that must equal the block&rsquo;s own Merkle root.</li>
+        <li><b>The block</b> is then read from two independent explorers. If its Merkle root is what the proof arrives at, the record was already fixed when that block was mined.</li>
+      </ol>
+
+      <p>If a record was recorded within the last hour or so, it may not be anchored yet — anchoring runs hourly and a Bitcoin block usually follows within a few hours. That is reported as awaiting a block rather than as a failure.</p>
+
+      <p class="back"><a href="../">&larr; Back to home</a></p>
+    </article>
+  </div>
+
+  <footer class="footerbar">
+    <nav>
+      <a href="../how-to/">Guide</a>
+      <a href="../privacy/">Privacy</a>
+      <a href="../terms/">Terms</a>
+      <a href="../support/">Support</a>
+      <a href="../">Home</a>
+    </nav>
+    <span>&copy; 2026 Roomates Ltd, trading as rm8tes &middot; built for renters and the people they live with</span>
+  </footer>
+</main>
+
+<script type="module">
+import { verify, hexToBytes, EXPLORERS } from './verify.js';
+
+const form = document.getElementById('form');
+const input = document.getElementById('hash');
+const out = document.getElementById('out');
+const banner = document.getElementById('banner');
+const checksEl = document.getElementById('checks');
+const factsEl = document.getElementById('facts');
+const downloads = document.getElementById('downloads');
+const dlHint = document.getElementById('dl-hint');
+const dlOts = document.getElementById('dl-ots');
+const dlRoot = document.getElementById('dl-root');
+
+const BANNERS = {
+  running:  ['Checking…', 'Reading the proof and asking the blockchain.'],
+  verified: ['Verified', 'This record was already fixed when the block below was mined.'],
+  pending:  ['Awaiting a block', 'Real and anchored, but Bitcoin has not published it yet.'],
+  notfound: ['No proof found', 'Nothing is published for that hash.'],
+  unknown:  ['Not concluded', 'The last step could not be completed. Nothing here says the record is wrong.'],
+  failed:   ['Does not check out', 'A step contradicted another. The detail is below.'],
+};
+
+const MARKS = { true: '✓', false: '✗', wait: '○', idle: '·' };
+
+function markOf(check, status) {
+  if (check.ok === true) return 'true';
+  if (check.ok === false) return 'false';
+  // A check with a detail but no verdict is one we deliberately stopped at.
+  if (check.detail) return 'wait';
+  return status === 'running' ? 'idle' : 'idle';
+}
+
+function render(result) {
+  out.hidden = false;
+  const [title, sub] = BANNERS[result.status] ?? BANNERS.failed;
+  banner.dataset.state = result.status;
+  banner.innerHTML = '';
+  banner.append(title, Object.assign(document.createElement('small'), { textContent: sub }));
+
+  checksEl.replaceChildren(...result.checks.map((c) => {
+    const li = document.createElement('li');
+    li.dataset.ok = markOf(c, result.status);
+    const mark = document.createElement('span');
+    mark.className = 'mark';
+    mark.setAttribute('aria-hidden', 'true');
+    mark.textContent = MARKS[li.dataset.ok];
+    const body = document.createElement('div');
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = c.label;
+    body.append(label);
+    if (c.detail) {
+      const d = document.createElement('p');
+      d.className = 'detail';
+      d.textContent = c.detail;
+      body.append(d);
+    }
+    li.append(mark, body);
+    return li;
+  }));
+
+  // Whole seconds, plainly labelled UTC. Fractions are noise to a reader and
+  // the source has them only sometimes, which would otherwise show through.
+  const stamp = (iso) => iso.replace('T', ' ').replace(/(\.\d+)?Z$/, ' UTC');
+
+  const rows = [];
+  const add = (k, v) => rows.push([k, v]);
+  add('Record', result.recordHash);
+  if (result.batch) {
+    add('Merkle root', result.batch.merkle_root);
+    add('Anchored', stamp(result.batch.anchored_at));
+  }
+  if (result.block) {
+    add('Block', result.block.height.toLocaleString('en-GB'));
+    if (result.block.time) add('Mined', stamp(result.block.time));
+  }
+
+  factsEl.replaceChildren(...rows.map(([k, v]) => {
+    const row = document.createElement('div');
+    const dt = document.createElement('dt');
+    dt.textContent = k;
+    const dd = document.createElement('dd');
+    dd.textContent = v;
+    row.append(dt, dd);
+    return row;
+  }));
+
+  // Links out to both explorers, so the reader can see the block for
+  // themselves rather than taking this page's word for it either.
+  if (result.block) {
+    const row = document.createElement('div');
+    const dt = document.createElement('dt');
+    dt.textContent = 'See it at';
+    const dd = document.createElement('dd');
+    EXPLORERS.forEach((e, i) => {
+      if (i) dd.append(' · ');
+      const a = document.createElement('a');
+      a.href = `https://${e.name}/block/${result.block.id}`;
+      a.rel = 'noopener noreferrer';
+      a.target = '_blank';
+      a.textContent = e.name;
+      dd.append(a);
+    });
+    row.append(dt, dd);
+    factsEl.append(row);
+  }
+
+  const showDl = Boolean(result.otsHex && result.batch);
+  downloads.hidden = !showDl;
+  dlHint.hidden = !showDl;
+  if (showDl) {
+    const stem = result.batch.merkle_root.slice(0, 16);
+    dlOts.href = URL.createObjectURL(
+      new Blob([hexToBytes(result.otsHex)], { type: 'application/octet-stream' }),
+    );
+    dlOts.download = `${stem}.bin.ots`;
+    dlRoot.href = URL.createObjectURL(
+      new Blob([hexToBytes(result.batch.merkle_root)], { type: 'application/octet-stream' }),
+    );
+    dlRoot.download = `${stem}.bin`;
+  }
+}
+
+let running = false;
+async function run(hash) {
+  if (running) return;
+  running = true;
+  input.value = hash;
+  out.hidden = false;
+  banner.dataset.state = 'running';
+  banner.textContent = BANNERS.running[0];
+  try {
+    render(await verify(hash.trim().toLowerCase(), render));
+  } finally {
+    running = false;
+  }
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const hash = input.value.trim().toLowerCase();
+  // Keeps the address bar shareable, and re-runs through the same path a
+  // scanned QR code takes.
+  if (location.hash.slice(1) === hash) run(hash);
+  else location.hash = hash;
+});
+
+// The QR code printed in an evidence pack lands here. A fragment is used rather
+// than a query string so the hash is never sent to a web server -- not ours,
+// not GitHub's -- and stays out of every access log along the way.
+function fromLocation() {
+  const raw = decodeURIComponent(location.hash.slice(1)).trim().toLowerCase();
+  const hash = raw.startsWith('h=') ? raw.slice(2) : raw;
+  if (/^[0-9a-f]{64}$/.test(hash)) run(hash);
+}
+addEventListener('hashchange', fromLocation);
+fromLocation();
+</script>
+
+</body>
+</html>
