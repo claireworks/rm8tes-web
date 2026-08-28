@@ -97,21 +97,17 @@ body{
 /* ---- the tube, switched on ----
    The scanlines above stay put: they are the mask over the glass, and a mask
    that moves is a distraction rather than a texture. What reads as a live CRT
-   is the beam painting the picture and the supply not being quite steady, so
-   those get a layer each.
+   is the beam still painting the picture, so that gets a layer of its own: one
+   band brighter than the rest, drifting down the glass.
 
-   They hang off body's own pseudo-elements rather than nesting inside .crt
-   because they lighten where .crt darkens. .crt multiplies, and its z-index
-   makes it a stacking context, so a child of it would have nothing to blend
-   against but .crt itself. Two siblings, two blend modes, and no extra markup
-   on seven pages. */
-body::before,body::after{
-  content:""; position:fixed; left:0; right:0; z-index:51;
-  pointer-events:none; mix-blend-mode:plus-lighter; opacity:0;
-}
-/* the beam: one band brighter than the rest, drifting down the glass */
+   It hangs off a body pseudo-element rather than nesting inside .crt because it
+   lightens where .crt darkens. .crt multiplies, and its z-index makes it a
+   stacking context, so a child of it would have nothing to blend against but
+   .crt itself. One element, its own blend mode, no extra markup on seven
+   pages. */
 body::before{
-  top:0; height:24vh;
+  content:""; position:fixed; left:0; right:0; top:0; z-index:51; height:24vh;
+  pointer-events:none; mix-blend-mode:plus-lighter; opacity:0;
   background:linear-gradient(to bottom,
     transparent,
     rgba(155,109,212,.05) 38%,
@@ -119,13 +115,6 @@ body::before{
     rgba(155,109,212,.05) 62%,
     transparent);
   animation:beam 8.5s linear infinite;
-}
-/* the supply: three dropped frames a cycle, spaced so the eye cannot learn the
-   schedule. step-end keeps them as flicks rather than fades. */
-body::after{
-  top:0; bottom:0;
-  background:rgba(196,155,240,.5);
-  animation:flicker 17s step-end infinite;
 }
 
 /* ---- device shell (shared) ---- */
@@ -1001,15 +990,6 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
   from{opacity:1; transform:translateY(-26vh);}
   to{opacity:1; transform:translateY(100vh);}
 }
-@keyframes flicker{
-  0%,27.9%{opacity:0;}
-  28%{opacity:.055;}
-  28.3%{opacity:0;}
-  62.5%{opacity:.03;}
-  62.7%{opacity:0;}
-  89%{opacity:.045;}
-  89.4%{opacity:0;}
-}
 /* One pass across the frame, then most of the cycle parked off the right-hand
    edge — a beam that never rests reads as a loading spinner. */
 @keyframes sweep{
@@ -1036,8 +1016,8 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 @media (prefers-reduced-motion:reduce){
   .rec,.cursor{animation:none;}
   .auth-card{animation:none;}
-  /* Each of these has opacity:0 in its base rule, so cutting the animation
-     hides the layer instead of stranding it mid-sweep. */
-  body::before,body::after,.frame::before{animation:none;}
+  /* Both have opacity:0 in their base rule, so cutting the animation hides the
+     layer instead of stranding it mid-sweep. */
+  body::before,.frame::before{animation:none;}
   .btn{transition:none;}
 }
