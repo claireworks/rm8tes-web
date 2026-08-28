@@ -1,0 +1,23 @@
+# GitHub Pages build configuration.
+#
+# This repository is public and Pages serves it from the branch root, so every
+# committed file is world-readable at rm8tes.com/<path> unless it is listed
+# below. `.nojekyll` used to disable the build entirely, which meant there was
+# no list -- everything shipped. Jekyll now runs solely so that `exclude` is
+# honoured: no file here carries front matter, so each one is treated as a
+# static file and copied byte-for-byte, exactly as before.
+#
+# Anything named here stays in the repository and is never published.
+
+exclude:
+  # Working documents. Not written for readers, and the security notes describe
+  # weaknesses that are not all closed yet.
+  - "*.md"
+  - "**/*.md"
+
+  # Backend source now lives in the private rm8tes-app repository. This entry is
+  # a guard, not a cleanup: `supabase link` or `supabase init` run in this
+  # directory would recreate the folder, and it must not reach the web root if
+  # it does. Serving it leaks the honeypot field name, the internal RPC and
+  # table names, and the CORS allowlist.
+  - supabase

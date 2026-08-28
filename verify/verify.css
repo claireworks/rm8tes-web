@@ -1,0 +1,61 @@
+/* Page-scoped: none of this is reused anywhere else on the site, and the shared
+   sheet should stay shared.
+
+   In a file rather than a <style> block so that this page's
+   Content-Security-Policy can omit 'unsafe-inline' entirely. */
+
+.vform{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin:18px 0 6px;}
+.vform input{
+  flex:1 1 34ch; min-width:0;
+  font-family:var(--font-term); font-size:1.14rem; letter-spacing:.02em;
+  padding:.55em .7em; color:var(--prose);
+  background:var(--card); border:2px solid var(--border); border-radius:2px;
+}
+.vform input:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
+.vhint{margin:0; color:var(--lilac); font-size:.95em;}
+
+.vbanner{
+  margin:22px 0 0; padding:14px 18px;
+  border:2px solid var(--border); border-left-width:6px; background:var(--card);
+  font-family:var(--font-term); font-size:1.3rem; letter-spacing:.04em;
+}
+.vbanner[data-state="verified"]{border-color:var(--green); color:var(--green);}
+.vbanner[data-state="pending"]{border-color:var(--yellow); color:var(--yellow);}
+.vbanner[data-state="failed"]{border-color:var(--pink); color:var(--pink);}
+.vbanner[data-state="unknown"],
+.vbanner[data-state="notfound"]{border-color:var(--grape); color:var(--pale);}
+.vbanner[data-state="running"]{border-color:var(--cyan); color:var(--cyan);}
+.vbanner small{display:block; margin-top:6px; font-size:.95rem; color:var(--prose); letter-spacing:0;}
+
+.vchecks{list-style:none; margin:18px 0 0; padding:0;}
+.vchecks li{
+  display:grid; grid-template-columns:1.7em 1fr; gap:10px;
+  padding:10px 0; border-top:1px solid var(--line);
+}
+.vchecks .mark{font-family:var(--font-term); font-size:1.3rem; line-height:1.2; text-align:center;}
+.vchecks li[data-ok="true"] .mark{color:var(--green);}
+.vchecks li[data-ok="false"] .mark{color:var(--pink);}
+.vchecks li[data-ok="wait"] .mark{color:var(--yellow);}
+.vchecks li[data-ok="idle"]{opacity:.45;}
+.vchecks .label{font-family:var(--font-term); font-size:1.16rem; color:var(--pale); letter-spacing:.03em;}
+.vchecks .detail{margin:3px 0 0; font-size:.95em; color:var(--lilac); line-height:1.55; overflow-wrap:anywhere;}
+
+.vfacts{margin:22px 0 0; border-top:1px solid var(--line);}
+.vfacts div{display:grid; grid-template-columns:14ch 1fr; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);}
+.vfacts dt{font-family:var(--font-term); font-size:1.05rem; color:var(--cyan); letter-spacing:.05em;}
+.vfacts dd{margin:0; font-family:var(--font-term); font-size:1.05rem; color:var(--prose); overflow-wrap:anywhere;}
+.vfacts a{color:var(--pale);}
+
+.vdl{display:flex; gap:12px; flex-wrap:wrap; margin:18px 0 0;}
+@media (max-width:560px){
+  .vfacts div{grid-template-columns:1fr; gap:2px;}
+}
+
+/* Shown only when frame-guard.js finds this page inside somebody else's frame
+   and cannot break out of it. Deliberately plain: it must not need the shared
+   stylesheet, the fonts or anything else to have loaded. */
+.frame-warning{
+  max-width:34em; margin:12vh auto; padding:0 6vw;
+  font-family:system-ui, sans-serif; line-height:1.6; color:#e8e6f0;
+}
+.frame-warning a{color:#7ee0ff;}

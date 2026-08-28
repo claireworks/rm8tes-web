@@ -36,10 +36,24 @@ export const EXPLORERS = [
 
 // ---- bytes ---------------------------------------------------------------
 
-export const isHash = (s) => /^[0-9a-f]{64}$/.test(s);
+export const isHash = (s) => typeof s === 'string' && /^[0-9a-f]{64}$/.test(s);
+
+/// Hex of any even length, which is what an .ots proof is.
+export const isHex = (s) =>
+  typeof s === 'string' && s.length > 0 && s.length % 2 === 0 &&
+  /^[0-9a-fA-F]+$/.test(s);
+
+/// An .ots proof for one batch is a few hundred bytes. This bound is three
+/// orders of magnitude above that and exists only so a hostile or corrupt
+/// document cannot make the parser below chew through megabytes.
+export const MAX_OTS_BYTES = 262144;
 
 export function hexToBytes(hex) {
-  if (hex.length % 2 !== 0) throw new Error('odd-length hex');
+  // Rejecting non-hex here rather than at each call site, because the failure
+  // is silent otherwise: parseInt('zz', 16) is NaN, and writing NaN into a
+  // Uint8Array stores 0. Garbage would parse into a plausible-looking proof
+  // made of zero bytes instead of raising anything.
+  if (!isHex(hex)) throw new Error('not even-length hexadecimal');
   const out = new Uint8Array(hex.length / 2);
   for (let i = 0; i < out.length; i++) {
     out[i] = parseInt(hex.substr(i * 2, 2), 16);
@@ -81,10 +95,27 @@ const NODE_PREFIX = new Uint8Array([0x01]);
 export const leafHash = (recordHash) => sha256(LEAF_PREFIX, recordHash);
 export const nodeHash = (l, r) => sha256(NODE_PREFIX, l, r);
 
+/// A path of n steps proves membership of a batch of up to 2^n records, so 64
+/// is already an absurd batch. The bound is here because the path arrives in a
+/// fetched document: without it, a document claiming a few million steps hangs
+/// the reader's tab computing hashes.
+export const MAX_MERKLE_PATH = 64;
+
 /// Folds a leaf up to its root. `side` names the side the *sibling* sits on.
 export async function foldPath(leaf, path) {
+  if (!Array.isArray(path)) throw new Error('sibling path is not a list');
+  if (path.length > MAX_MERKLE_PATH) {
+    throw new Error(`sibling path of ${path.length} steps is not plausible`);
+  }
   let acc = leaf;
   for (const step of path) {
+    if (!isHash(step?.h)) throw new Error('a sibling is not a hash');
+    // Named explicitly rather than treating anything that is not 'left' as
+    // 'right': a missing or misspelt side would otherwise fold quietly the
+    // wrong way and report a mismatch as though the record were bad.
+    if (step.side !== 'left' && step.side !== 'right') {
+      throw new Error(`a sibling has side ${JSON.stringify(step.side)}`);
+    }
     const sibling = hexToBytes(step.h);
     acc = step.side === 'left'
       ? await nodeHash(sibling, acc)
@@ -253,10 +284,19 @@ async function getJson(url) {
   throw new Error(`${url} returned ${res.status}`);
 }
 
-export const fetchLeaf = (recordHash) =>
-  getJson(`${STORAGE_BASE}/leaf/${recordHash}.json`);
-export const fetchBatch = (merkleRoot) =>
-  getJson(`${STORAGE_BASE}/${merkleRoot}.json`);
+// Both of these interpolate into a URL path, so both check first. The record
+// hash is user input and was already checked by the caller; the Merkle root is
+// read out of a document rm8tes served, which is exactly the input this page
+// claims not to trust. A value containing ../ would send the fetch somewhere
+// else in the bucket entirely.
+export const fetchLeaf = (recordHash) => {
+  if (!isHash(recordHash)) throw new Error('not a record hash');
+  return getJson(`${STORAGE_BASE}/leaf/${recordHash}.json`);
+};
+export const fetchBatch = (merkleRoot) => {
+  if (!isHash(merkleRoot)) throw new Error('not a Merkle root');
+  return getJson(`${STORAGE_BASE}/${merkleRoot}.json`);
+};
 
 /// What one explorer says block `height` is. Never throws: an explorer being
 /// down is a fact about the explorer, not about the proof.
@@ -352,6 +392,9 @@ export async function verify(recordHash, onProgress = () => {}) {
           'or the record it covers has since been deleted.',
       );
     }
+    if (!isHash(leaf?.merkle_root)) {
+      return fail('found', 'The proof document does not name a Merkle root.');
+    }
     batch = await fetchBatch(leaf.merkle_root);
     if (batch === null) {
       return fail('found', `No batch document for root ${leaf.merkle_root}.`);
@@ -359,6 +402,24 @@ export async function verify(recordHash, onProgress = () => {}) {
   } catch (e) {
     result.status = 'unknown';
     return fail('found', `Could not fetch the proof: ${e.message}`);
+  }
+
+  // Everything below treats these two documents as data of a known shape. They
+  // come from rm8tes' own storage, which is precisely the thing this page says
+  // it does not have to trust -- so establish the shape here, once, rather than
+  // discovering it three steps down with half a verdict already on screen.
+  if (!isHash(batch?.merkle_root)) {
+    return fail('found', 'The batch document does not carry a Merkle root.');
+  }
+  if (!isHex(batch.ots)) {
+    return fail('found', 'The batch document carries no timestamp proof.');
+  }
+  if (batch.ots.length / 2 > MAX_OTS_BYTES) {
+    return fail(
+      'found',
+      `The timestamp proof is ${Math.round(batch.ots.length / 2048)} kB, which ` +
+        'is far larger than any real one. Refusing to parse it.',
+    );
   }
 
   result.leaf = leaf;
@@ -371,9 +432,19 @@ export async function verify(recordHash, onProgress = () => {}) {
   step();
 
   // 2. Fold the record up to the root.
-  const folded = bytesToHex(
-    await foldPath(await leafHash(hexToBytes(recordHash)), leaf.merkle_path),
-  );
+  //
+  // foldPath throws on a path that is not a list of plausible siblings. That is
+  // a malformed document rather than a contradiction between two honest ones,
+  // but from the reader's side both mean the same thing -- this proof does not
+  // establish anything -- so it is reported on the same line.
+  let folded;
+  try {
+    folded = bytesToHex(
+      await foldPath(await leafHash(hexToBytes(recordHash)), leaf.merkle_path),
+    );
+  } catch (e) {
+    return fail('fold', `The sibling path will not fold: ${e.message}.`);
+  }
   if (folded !== batch.merkle_root) {
     return fail(
       'fold',

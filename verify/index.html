@@ -7,57 +7,21 @@
 <meta name="description" content="Check an rm8tes evidence record against the Bitcoin blockchain, in your own browser. Nothing here relies on rm8tes being truthful.">
 <link rel="icon" type="image/png" href="../assets/img/favicon.png">
 <link rel="apple-touch-icon" href="../assets/img/apple-touch-icon.png">
+<!-- connect-src is the whole outward surface of this page: two block explorers
+     that are not us, and the storage bucket the proof documents sit in. Nothing
+     else, no inline script, no inline style.
+
+     Delivered as <meta> because GitHub Pages cannot set response headers on a
+     custom domain. That costs us frame-ancestors, which a <meta> CSP ignores --
+     the directive that would actually stop this page being framed. frame-guard.js
+     below stands in for it; see the note there. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; connect-src 'self' https://iqpmsuoxylfniayrntfm.supabase.co https://blockstream.info https://mempool.space; object-src 'none'; base-uri 'none'; form-action 'self'">
+<meta name="referrer" content="no-referrer">
 <link rel="stylesheet" href="../assets/style.css">
-<style>
-/* Page-scoped: none of this is reused anywhere else on the site, and the shared
-   sheet should stay shared. */
-.vform{display:flex; gap:10px; flex-wrap:wrap; align-items:stretch; margin:18px 0 6px;}
-.vform input{
-  flex:1 1 34ch; min-width:0;
-  font-family:var(--font-term); font-size:1.14rem; letter-spacing:.02em;
-  padding:.55em .7em; color:var(--prose);
-  background:var(--card); border:2px solid var(--border); border-radius:2px;
-}
-.vform input:focus-visible{outline:2px solid var(--cyan); outline-offset:2px;}
-.vhint{margin:0; color:var(--lilac); font-size:.95em;}
-
-.vbanner{
-  margin:22px 0 0; padding:14px 18px;
-  border:2px solid var(--border); border-left-width:6px; background:var(--card);
-  font-family:var(--font-term); font-size:1.3rem; letter-spacing:.04em;
-}
-.vbanner[data-state="verified"]{border-color:var(--green); color:var(--green);}
-.vbanner[data-state="pending"]{border-color:var(--yellow); color:var(--yellow);}
-.vbanner[data-state="failed"]{border-color:var(--pink); color:var(--pink);}
-.vbanner[data-state="unknown"],
-.vbanner[data-state="notfound"]{border-color:var(--grape); color:var(--pale);}
-.vbanner[data-state="running"]{border-color:var(--cyan); color:var(--cyan);}
-.vbanner small{display:block; margin-top:6px; font-size:.95rem; color:var(--prose); letter-spacing:0;}
-
-.vchecks{list-style:none; margin:18px 0 0; padding:0;}
-.vchecks li{
-  display:grid; grid-template-columns:1.7em 1fr; gap:10px;
-  padding:10px 0; border-top:1px solid var(--line);
-}
-.vchecks .mark{font-family:var(--font-term); font-size:1.3rem; line-height:1.2; text-align:center;}
-.vchecks li[data-ok="true"] .mark{color:var(--green);}
-.vchecks li[data-ok="false"] .mark{color:var(--pink);}
-.vchecks li[data-ok="wait"] .mark{color:var(--yellow);}
-.vchecks li[data-ok="idle"]{opacity:.45;}
-.vchecks .label{font-family:var(--font-term); font-size:1.16rem; color:var(--pale); letter-spacing:.03em;}
-.vchecks .detail{margin:3px 0 0; font-size:.95em; color:var(--lilac); line-height:1.55; overflow-wrap:anywhere;}
-
-.vfacts{margin:22px 0 0; border-top:1px solid var(--line);}
-.vfacts div{display:grid; grid-template-columns:14ch 1fr; gap:10px; padding:8px 0; border-bottom:1px solid var(--line);}
-.vfacts dt{font-family:var(--font-term); font-size:1.05rem; color:var(--cyan); letter-spacing:.05em;}
-.vfacts dd{margin:0; font-family:var(--font-term); font-size:1.05rem; color:var(--prose); overflow-wrap:anywhere;}
-.vfacts a{color:var(--pale);}
-
-.vdl{display:flex; gap:12px; flex-wrap:wrap; margin:18px 0 0;}
-@media (max-width:560px){
-  .vfacts div{grid-template-columns:1fr; gap:2px;}
-}
-</style>
+<link rel="stylesheet" href="verify.css">
+<!-- Synchronous and first: this must run before a framed copy of the page can
+     paint a "Verified" banner for somebody to overlay. -->
+<script src="frame-guard.js"></script>
 </head>
 <body>
 
@@ -137,165 +101,7 @@
   </footer>
 </main>
 
-<script type="module">
-import { verify, hexToBytes, EXPLORERS } from './verify.js';
-
-const form = document.getElementById('form');
-const input = document.getElementById('hash');
-const out = document.getElementById('out');
-const banner = document.getElementById('banner');
-const checksEl = document.getElementById('checks');
-const factsEl = document.getElementById('facts');
-const downloads = document.getElementById('downloads');
-const dlHint = document.getElementById('dl-hint');
-const dlOts = document.getElementById('dl-ots');
-const dlRoot = document.getElementById('dl-root');
-
-const BANNERS = {
-  running:  ['Checking…', 'Reading the proof and asking the blockchain.'],
-  verified: ['Verified', 'This record was already fixed when the block below was mined.'],
-  pending:  ['Awaiting a block', 'Real and anchored, but Bitcoin has not published it yet.'],
-  notfound: ['No proof found', 'Nothing is published for that hash.'],
-  unknown:  ['Not concluded', 'The last step could not be completed. Nothing here says the record is wrong.'],
-  failed:   ['Does not check out', 'A step contradicted another. The detail is below.'],
-};
-
-const MARKS = { true: '✓', false: '✗', wait: '○', idle: '·' };
-
-function markOf(check, status) {
-  if (check.ok === true) return 'true';
-  if (check.ok === false) return 'false';
-  // A check with a detail but no verdict is one we deliberately stopped at.
-  if (check.detail) return 'wait';
-  return status === 'running' ? 'idle' : 'idle';
-}
-
-function render(result) {
-  out.hidden = false;
-  const [title, sub] = BANNERS[result.status] ?? BANNERS.failed;
-  banner.dataset.state = result.status;
-  banner.innerHTML = '';
-  banner.append(title, Object.assign(document.createElement('small'), { textContent: sub }));
-
-  checksEl.replaceChildren(...result.checks.map((c) => {
-    const li = document.createElement('li');
-    li.dataset.ok = markOf(c, result.status);
-    const mark = document.createElement('span');
-    mark.className = 'mark';
-    mark.setAttribute('aria-hidden', 'true');
-    mark.textContent = MARKS[li.dataset.ok];
-    const body = document.createElement('div');
-    const label = document.createElement('span');
-    label.className = 'label';
-    label.textContent = c.label;
-    body.append(label);
-    if (c.detail) {
-      const d = document.createElement('p');
-      d.className = 'detail';
-      d.textContent = c.detail;
-      body.append(d);
-    }
-    li.append(mark, body);
-    return li;
-  }));
-
-  // Whole seconds, plainly labelled UTC. Fractions are noise to a reader and
-  // the source has them only sometimes, which would otherwise show through.
-  const stamp = (iso) => iso.replace('T', ' ').replace(/(\.\d+)?Z$/, ' UTC');
-
-  const rows = [];
-  const add = (k, v) => rows.push([k, v]);
-  add('Record', result.recordHash);
-  if (result.batch) {
-    add('Merkle root', result.batch.merkle_root);
-    add('Anchored', stamp(result.batch.anchored_at));
-  }
-  if (result.block) {
-    add('Block', result.block.height.toLocaleString('en-GB'));
-    if (result.block.time) add('Mined', stamp(result.block.time));
-  }
-
-  factsEl.replaceChildren(...rows.map(([k, v]) => {
-    const row = document.createElement('div');
-    const dt = document.createElement('dt');
-    dt.textContent = k;
-    const dd = document.createElement('dd');
-    dd.textContent = v;
-    row.append(dt, dd);
-    return row;
-  }));
-
-  // Links out to both explorers, so the reader can see the block for
-  // themselves rather than taking this page's word for it either.
-  if (result.block) {
-    const row = document.createElement('div');
-    const dt = document.createElement('dt');
-    dt.textContent = 'See it at';
-    const dd = document.createElement('dd');
-    EXPLORERS.forEach((e, i) => {
-      if (i) dd.append(' · ');
-      const a = document.createElement('a');
-      a.href = `https://${e.name}/block/${result.block.id}`;
-      a.rel = 'noopener noreferrer';
-      a.target = '_blank';
-      a.textContent = e.name;
-      dd.append(a);
-    });
-    row.append(dt, dd);
-    factsEl.append(row);
-  }
-
-  const showDl = Boolean(result.otsHex && result.batch);
-  downloads.hidden = !showDl;
-  dlHint.hidden = !showDl;
-  if (showDl) {
-    const stem = result.batch.merkle_root.slice(0, 16);
-    dlOts.href = URL.createObjectURL(
-      new Blob([hexToBytes(result.otsHex)], { type: 'application/octet-stream' }),
-    );
-    dlOts.download = `${stem}.bin.ots`;
-    dlRoot.href = URL.createObjectURL(
-      new Blob([hexToBytes(result.batch.merkle_root)], { type: 'application/octet-stream' }),
-    );
-    dlRoot.download = `${stem}.bin`;
-  }
-}
-
-let running = false;
-async function run(hash) {
-  if (running) return;
-  running = true;
-  input.value = hash;
-  out.hidden = false;
-  banner.dataset.state = 'running';
-  banner.textContent = BANNERS.running[0];
-  try {
-    render(await verify(hash.trim().toLowerCase(), render));
-  } finally {
-    running = false;
-  }
-}
-
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const hash = input.value.trim().toLowerCase();
-  // Keeps the address bar shareable, and re-runs through the same path a
-  // scanned QR code takes.
-  if (location.hash.slice(1) === hash) run(hash);
-  else location.hash = hash;
-});
-
-// The QR code printed in an evidence pack lands here. A fragment is used rather
-// than a query string so the hash is never sent to a web server -- not ours,
-// not GitHub's -- and stays out of every access log along the way.
-function fromLocation() {
-  const raw = decodeURIComponent(location.hash.slice(1)).trim().toLowerCase();
-  const hash = raw.startsWith('h=') ? raw.slice(2) : raw;
-  if (/^[0-9a-f]{64}$/.test(hash)) run(hash);
-}
-addEventListener('hashchange', fromLocation);
-fromLocation();
-</script>
+<script type="module" src="page.js"></script>
 
 </body>
 </html>
