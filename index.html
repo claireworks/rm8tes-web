@@ -14,7 +14,8 @@
      Turnstile widget injects its own <style> element and there is no way to put
      a nonce on it. Scripts stay locked to this origin plus Cloudflare's widget,
      which is the part that actually matters -- so the page's own JavaScript
-     lives in assets/beta-signup.js rather than in a <script> block here. -->
+     lives in assets/motion.js and assets/beta-signup.js rather than in <script>
+     blocks here. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://iqpmsuoxylfniayrntfm.supabase.co https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" type="image/png" href="assets/img/favicon.png">
@@ -38,7 +39,9 @@
       <img class="brand-mark" src="assets/img/icon.jpg" alt="" width="26" height="26">
       <span class="brand-text">rm8tes</span>
     </a>
-    <span class="readout">51.5074&deg;N &middot; 0.1278&deg;W &middot; <span class="rec" aria-hidden="true">&#9679;</span> REC</span>
+    <!-- The coordinates wander in their last decimal once assets/motion.js is
+         running; the values here are what shows without it. -->
+    <span class="readout"><span class="coord" data-base="51.5074">51.5074</span>&deg;N &middot; <span class="coord" data-base="0.1278">0.1278</span>&deg;W &middot; <span class="rec" aria-hidden="true">&#9679;</span> REC</span>
   </header>
 
   <section class="stage">
@@ -49,9 +52,11 @@
       <div class="cta">
         <a class="btn primary" href="#join">&#9656; Join the beta</a>
         <a class="btn ghost" href="#household">Meet your household</a>
-        <a class="plain" href="#how">or see how the proof holds up &#8595;</a>
+        <a class="quiet" href="#how">or see how the proof holds up &#8595;</a>
       </div>
-      <p class="statusline">&gt; 3 flatmates connected&hellip;<span class="cursor" aria-hidden="true">&#9608;</span></p>
+      <!-- The first line is the one that ships: with assets/motion.js blocked
+           this reads as a finished sentence and simply does not cycle. -->
+      <p class="statusline">&gt; <span class="typed" data-lines="3 flatmates connected&hellip;|vault #0417 mounted&hellip;|move-in mirrored to move-out&hellip;">3 flatmates connected&hellip;</span><span class="cursor" aria-hidden="true">&#9608;</span></p>
     </div>
 
     <aside class="record" aria-label="Sample household evidence record">
@@ -212,6 +217,9 @@
   </footer>
 </main>
 
+<!-- First, so the pair below stay adjacent. Nothing depends on this file and
+     nothing in it depends on anything else. -->
+<script src="assets/motion.js"></script>
 <script src="assets/beta-signup.js"></script>
 <!-- After the block above, so window.onTurnstileLoad exists when this runs. -->
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad&render=explicit" async defer></script>

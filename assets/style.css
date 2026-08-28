@@ -40,6 +40,10 @@
   --font-arcade:"PressStart2P", "VT323", monospace;
   /* readable face for long-form legal prose — legibility beats novelty here */
   --font-read:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* One easing vocabulary, so the boot, the reveals and the hovers all read as
+     the same machine moving rather than four different ones. */
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --ease-crt:cubic-bezier(.2,.7,.2,1);
 }
 
 *{box-sizing:border-box;}
@@ -52,6 +56,35 @@ body{
   min-height:100svh;
 }
 
+/* ============================================================
+   Motion, in general
+
+   Two rules hold this together and both matter more than they look:
+
+   1. Entrances and reveals animate the `translate` property. Hovers and the
+      pointer tilt animate `transform`. They compose, and they have to be kept
+      apart: an animation with `both` fill owns the property it touches for as
+      long as the element lives, so a reveal written against `transform` would
+      silently swallow every hover lift on the same element.
+
+   2. Anything that moves on its own has `opacity:0` in its base rule and is
+      lit by its own keyframes. Killing the animation under reduced motion then
+      hides the element rather than freezing it somewhere conspicuous.
+   ============================================================ */
+
+/* ---- page to page ----
+   Same-origin navigations hand over as a cross-fade instead of a white flash,
+   which is most of what separates a static site from the app it is advertising.
+   The brand and the footer are named, so they hold still while the page changes
+   between them; everything else belongs to the root snapshot and fades.
+   Browsers without cross-document view transitions simply navigate, which is
+   exactly what they do today. */
+@media (prefers-reduced-motion:no-preference){
+  @view-transition{navigation:auto;}
+}
+::view-transition-old(root){animation:vt-out .16s var(--ease-crt) both;}
+::view-transition-new(root){animation:vt-in .28s var(--ease-crt) both;}
+
 /* CRT overlay — scanlines + vignette. Decorative. */
 .crt{
   position:fixed; inset:0; z-index:50; pointer-events:none;
@@ -59,6 +92,40 @@ body{
     repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px),
     radial-gradient(120% 120% at 50% 38%, transparent 55%, rgba(3,1,12,.62) 100%);
   mix-blend-mode:multiply;
+}
+
+/* ---- the tube, switched on ----
+   The scanlines above stay put: they are the mask over the glass, and a mask
+   that moves is a distraction rather than a texture. What reads as a live CRT
+   is the beam painting the picture and the supply not being quite steady, so
+   those get a layer each.
+
+   They hang off body's own pseudo-elements rather than nesting inside .crt
+   because they lighten where .crt darkens. .crt multiplies, and its z-index
+   makes it a stacking context, so a child of it would have nothing to blend
+   against but .crt itself. Two siblings, two blend modes, and no extra markup
+   on seven pages. */
+body::before,body::after{
+  content:""; position:fixed; left:0; right:0; z-index:51;
+  pointer-events:none; mix-blend-mode:plus-lighter; opacity:0;
+}
+/* the beam: one band brighter than the rest, drifting down the glass */
+body::before{
+  top:0; height:24vh;
+  background:linear-gradient(to bottom,
+    transparent,
+    rgba(155,109,212,.05) 38%,
+    rgba(0,232,255,.085) 50%,
+    rgba(155,109,212,.05) 62%,
+    transparent);
+  animation:beam 8.5s linear infinite;
+}
+/* the supply: three dropped frames a cycle, spaced so the eye cannot learn the
+   schedule. step-end keeps them as flicks rather than fades. */
+body::after{
+  top:0; bottom:0;
+  background:rgba(196,155,240,.5);
+  animation:flicker 17s step-end infinite;
 }
 
 /* ---- device shell (shared) ---- */
@@ -77,7 +144,9 @@ body{
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   padding-bottom:12px; border-bottom:1px solid var(--line);
 }
-.brand{display:flex; align-items:center; gap:9px; text-decoration:none;}
+/* Named so it survives a navigation intact: the mark stays nailed to the corner
+   while the page changes behind it. */
+.brand{display:flex; align-items:center; gap:9px; text-decoration:none; view-transition-name:brand;}
 .brand-mark{
   width:26px; height:26px; border-radius:5px;
   image-rendering:pixelated; box-shadow:0 0 0 1px var(--border);
@@ -101,6 +170,10 @@ body{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   padding-top:12px; border-top:1px solid var(--line);
   font-size:1.02em; letter-spacing:.08em; text-transform:uppercase; color:var(--lilac);
+  /* Named for the same reason as .brand. The verify page carries one extra
+     link, so this morphs rather than holding perfectly still — which is the
+     right answer for a bar whose contents genuinely differ. */
+  view-transition-name:footer;
 }
 .footerbar nav{display:flex; gap:18px; flex-wrap:wrap;}
 .footerbar a{color:var(--grape); text-decoration:none;}
@@ -132,7 +205,19 @@ body{
   align-items:center; gap:clamp(24px,4vw,56px);
   padding:clamp(24px,4vh,56px) 0;
 }
-.pitch{animation:boot .6s ease-out both;}
+/* The pitch assembles a line at a time rather than arriving as one block. The
+   whole run is over inside half a second — the headline is readable at 90ms —
+   because this is a landing page before it is a light show. */
+@media (prefers-reduced-motion:no-preference){
+  /* `backwards` rather than `both`: the fill is only needed to hold each line
+     out of sight during its delay. Once the run is over the animation lets go
+     entirely and the element is back under the stylesheet's control. */
+  .pitch > *{animation:boot .55s var(--ease-out) backwards;}
+  .pitch > h1{animation-delay:.09s;}
+  .pitch > .sub{animation-delay:.20s;}
+  .pitch > .cta{animation-delay:.31s;}
+  .pitch > .statusline{animation-delay:.42s;}
+}
 .eyebrow{
   margin:0 0 18px; font-size:1.05em;
   color:var(--lilac); letter-spacing:.24em; text-transform:uppercase;
@@ -142,7 +227,14 @@ h1.hero{
   margin:0; max-width:15ch; font-weight:normal;
   font-size:clamp(2.9rem,5.6vw,4.5rem); line-height:.96;
   letter-spacing:.005em; text-wrap:balance;
-  color:var(--pale); text-shadow:var(--glow-p);
+  color:var(--pale);
+  /* Convergence never was perfect on these things: the guns land a hair apart
+     and leave a colour fringe on anything large. Only the hero is set big
+     enough to carry it without costing legibility, so only the hero gets it. */
+  text-shadow:
+    -1px 0 rgba(255,107,221,.30),
+     1px 0 rgba(0,232,255,.30),
+     var(--glow-p);
 }
 h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .sub{
@@ -152,14 +244,19 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 .sub b{color:var(--pale); font-weight:normal;}
 .cta{display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-top:30px;}
 /* Third-rank link. The integrity explainer used to be a button up here; the
-   household took its place, and this keeps the route to it without competing. */
-.cta .plain{
+   household took its place, and this keeps the route to it without competing.
+
+   Called .quiet rather than .plain because the guide's green callout box owns
+   .plain, and a bare `.plain` rule beats `.cta .plain` on every property the
+   latter does not name — which was quietly wrapping this link in that box's
+   border, background and 16px of padding. */
+.cta .quiet{
   color:var(--lilac); text-decoration:none;
   font-size:1.06em; letter-spacing:.06em;
   border-bottom:1px solid var(--line);
 }
-.cta .plain:hover{color:var(--cyan); border-bottom-color:var(--grape);}
-.cta .plain:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
+.cta .quiet:hover{color:var(--cyan); border-bottom-color:var(--grape);}
+.cta .quiet:focus-visible{outline:2px solid var(--cyan); outline-offset:3px;}
 .statusline{
   margin:26px 0 0; font-size:1.12em; color:var(--lilac);
   letter-spacing:.04em; opacity:.8;
@@ -168,10 +265,16 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 
 /* evidence record card */
 .record{
-  animation:boot .6s ease-out .08s both;
   background:var(--card); border:2px solid var(--border); border-radius:3px;
   padding:16px;
   box-shadow:8px 8px 0 var(--line), 0 26px 60px rgba(0,0,0,.55);
+}
+/* Slides in from the side it sits on, a beat behind the headline, so the eye
+   reads the claim before the evidence for it arrives. Below 840px the card is
+   underneath the pitch rather than beside it, so it rises like everything else
+   — see the breakpoint at the foot of this file. */
+@media (prefers-reduced-motion:no-preference){
+  .record{animation:boot-side .7s var(--ease-out) .18s backwards;}
 }
 .record-head{
   display:flex; justify-content:space-between; align-items:baseline;
@@ -209,6 +312,21 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
   aspect-ratio:4/3; overflow:hidden; border-radius:2px;
   background:var(--card-2);
 }
+/* The mirror, doing the thing the label claims: a beam crossing move-in and
+   move-out in one pass, then a long pause before the next. It is absolutely
+   positioned, which takes it out of the grid — otherwise this pseudo-element
+   would be a third column alongside the two halves. */
+.frame::before{
+  content:""; position:absolute; top:0; bottom:0; left:0; width:34%; z-index:1;
+  pointer-events:none; opacity:0;
+  background:linear-gradient(90deg,
+    transparent,
+    rgba(0,232,255,.05) 38%,
+    rgba(0,232,255,.13) 50%,
+    rgba(0,232,255,.05) 62%,
+    transparent);
+  animation:sweep 7s var(--ease-crt) infinite;
+}
 .half{
   position:relative;
   background-image:radial-gradient(circle, rgba(0,232,255,.13) 1px, transparent 1.4px);
@@ -223,8 +341,11 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
     linear-gradient(var(--grape),var(--grape)) 0 50%/100% 1px no-repeat;
   opacity:.7;
 }
+/* Tucked inside the corner registration bracket rather than sharing its pixels:
+   the bracket's L is 16px along each edge from an inset of 9px, so the label
+   starts clear of both arms and reads as sitting within the viewfinder. */
 .tag{
-  position:absolute; left:10px; bottom:9px;
+  position:absolute; left:18px; bottom:16px;
   font-size:.92em; letter-spacing:.11em; text-transform:uppercase;
   color:var(--cyan); text-shadow:var(--glow-c);
 }
@@ -558,7 +679,7 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
   place-items:center; padding:clamp(28px,6vh,72px) 0;
 }
 .auth-card{
-  animation:boot .6s ease-out both;
+  animation:boot .6s var(--ease-out) backwards;
   width:min(56ch,100%); text-align:center;
   background:var(--card); border:2px solid var(--border); border-radius:3px;
   padding:clamp(24px,4.5vw,38px);
@@ -779,17 +900,144 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 }
 
 /* ============================================================
+   Scroll reveals
+
+   Driven by the scroll position itself rather than by an IntersectionObserver,
+   because the legal pages and the guide declare `script-src 'none'` and mean
+   it — an observer would leave five of the seven pages without any of this.
+
+   The @supports gate is the important part. Where scroll-driven animations are
+   missing the fallback has to be "the content is simply there", never "the
+   content is stuck at 40% opacity", so the reveal is only ever declared inside
+   a browser that can finish it.
+   ============================================================ */
+@supports (animation-timeline:view()){
+  @media (prefers-reduced-motion:no-preference){
+    .step,.bond,
+    .credit,.next,.verify,.limits,.warn,.plain,
+    .how-head,.house-copy,.flatmates,
+    .join > .eyebrow,.join > h2,.join-lede,
+    .guide-part > .part-n,.guide-part > h2,.part-lede,.gstep,
+    .doc > h2,.doc > blockquote{
+      animation:reveal auto var(--ease-out) both;
+      animation-timeline:view();
+      /* `cover` rather than `entry`: entry is measured against the element's
+         own height, which would make a one-line <h2> resolve in 30px of scroll
+         and a tall .gstep take 700px. cover folds the viewport into the
+         measurement, so everything moves at roughly the same rate whatever its
+         size. */
+      animation-range:cover 0% cover 30%;
+    }
+
+    /* Four cards in a row cross the same scroll line at the same moment, so the
+       stagger cannot come from a delay — there is no time axis here. It comes
+       from starting each sibling a little further into the same journey. */
+    .steps > :nth-child(2),.bonds > :nth-child(2){animation-range:cover 4% cover 34%;}
+    .steps > :nth-child(3),.bonds > :nth-child(3){animation-range:cover 8% cover 38%;}
+    .steps > :nth-child(4),.bonds > :nth-child(4){animation-range:cover 12% cover 42%;}
+    /* The guide is a two-column grid many rows deep, so it staggers by column
+       instead: the right-hand screenshot lands just after the left. */
+    .gsteps > :nth-child(even){animation-range:cover 5% cover 35%;}
+  }
+}
+
+/* ============================================================
+   Hover
+
+   Behind `hover:hover` so a phone never latches into the hovered state after a
+   tap. Every one of these moves `transform`, which the reveals deliberately
+   leave alone.
+   ============================================================ */
+@media (hover:hover){
+  .step,.bond,.guide-toc a,.shot img,.roster li{
+    transition:transform .18s var(--ease-out), box-shadow .18s var(--ease-out),
+               border-color .18s ease, background .18s ease;
+  }
+  /* The inverse of the button press: the card comes up off the board and its
+     hard shadow lengthens to match. */
+  .step:hover,.bond:hover{
+    transform:translate(-2px,-2px);
+    box-shadow:7px 7px 0 var(--line);
+    border-color:var(--grape);
+  }
+  .guide-toc a:hover{transform:translate(-1px,-1px); box-shadow:5px 5px 0 var(--line);}
+  .shot:hover img{
+    transform:translate(-2px,-2px);
+    box-shadow:9px 9px 0 var(--line), 0 26px 52px rgba(0,0,0,.58);
+  }
+  .roster li:hover{background:rgba(0,232,255,.045);}
+  .brand-text{transition:text-shadow .15s ease;}
+  .brand:hover .brand-text{text-shadow:2px 2px 0 var(--cyan), 3px 3px 0 var(--line);}
+
+  /* Pointer tilt is written as an inline transform by assets/motion.js, and
+     only on the home page. The base perspective here is what the card returns
+     to when the pointer leaves and the script clears that inline value. */
+  @media (prefers-reduced-motion:no-preference){
+    .record,.flatmates{transform:perspective(900px);}
+    .record.is-releasing,.flatmates.is-releasing{transition:transform .5s var(--ease-out);}
+  }
+}
+
+/* ============================================================
    Motion + responsive
    ============================================================ */
 @keyframes blink{50%{opacity:.15;}}
-@keyframes boot{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+/* Two deliberate choices here, both easy to undo by accident.
+
+   They animate `translate`, not `transform`. See the note at the top of the
+   file: a filled animation owns its property for the life of the element, and
+   these elements need `transform` free for hover and pointer tilt.
+
+   They have no `to` block. An omitted keyframe interpolates toward the
+   element's own computed value instead of a number written here, so .statusline
+   arrives at the opacity:.8 it is designed at rather than being dragged to 1 by
+   a shared keyframe that knows nothing about it. */
+@keyframes boot{from{opacity:0; translate:0 10px;}}
+@keyframes boot-side{from{opacity:0; translate:20px 0;}}
+@keyframes reveal{from{opacity:0; translate:0 16px;}}
+@keyframes vt-out{to{opacity:0; transform:scale(.994);}}
+@keyframes vt-in{from{opacity:0; transform:scale(1.006);}}
+@keyframes beam{
+  from{opacity:1; transform:translateY(-26vh);}
+  to{opacity:1; transform:translateY(100vh);}
+}
+@keyframes flicker{
+  0%,27.9%{opacity:0;}
+  28%{opacity:.055;}
+  28.3%{opacity:0;}
+  62.5%{opacity:.03;}
+  62.7%{opacity:0;}
+  89%{opacity:.045;}
+  89.4%{opacity:0;}
+}
+/* One pass across the frame, then most of the cycle parked off the right-hand
+   edge — a beam that never rests reads as a loading spinner. */
+@keyframes sweep{
+  0%{opacity:0; transform:translateX(-140%);}
+  6%{opacity:1;}
+  40%{opacity:1;}
+  46%,100%{opacity:0; transform:translateX(300%);}
+}
+
+/* In-page jumps glide rather than cut, and land clear of the top edge. */
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth;}
+}
+.household,.join,.how{scroll-margin-top:18px;}
 
 @media (max-width:840px){
   .stage{grid-template-columns:1fr; align-items:start; gap:34px; padding:26px 0;}
   .record{max-width:460px;}
+  /* Stacked under the pitch rather than beside it, so it rises with everything
+     else instead of sliding in from an edge it no longer sits against. */
+  .record{animation-name:boot;}
 }
+
 @media (prefers-reduced-motion:reduce){
   .rec,.cursor{animation:none;}
-  .pitch,.record{animation:none;}
+  .auth-card{animation:none;}
+  /* Each of these has opacity:0 in its base rule, so cutting the animation
+     hides the layer instead of stranding it mid-sweep. */
+  body::before,body::after,.frame::before{animation:none;}
   .btn{transition:none;}
 }
