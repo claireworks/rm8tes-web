@@ -85,36 +85,21 @@ body{
 ::view-transition-old(root){animation:vt-out .16s var(--ease-crt) both;}
 ::view-transition-new(root){animation:vt-in .28s var(--ease-crt) both;}
 
-/* CRT overlay — scanlines + vignette. Decorative. */
+/* CRT overlay — scanlines + vignette. Decorative, and deliberately static: this
+   is the mask over the glass, and a mask that moves is a distraction rather than
+   a texture.
+
+   Nothing sits behind this. Three goes at an ambient layer — a supply flicker, a
+   drifting beam, and a Merkle lattice on a canvas — were each built and each
+   removed, every time for the same reason: on a page this dark and this typeset,
+   anything moving on its own reads as noise. What is left moves only in answer to
+   something the reader did. Worth knowing before adding a fourth. */
 .crt{
   position:fixed; inset:0; z-index:50; pointer-events:none;
   background:
     repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px),
     radial-gradient(120% 120% at 50% 38%, transparent 55%, rgba(3,1,12,.62) 100%);
   mix-blend-mode:multiply;
-}
-
-/* ---- the tube, switched on ----
-   The scanlines above stay put: they are the mask over the glass, and a mask
-   that moves is a distraction rather than a texture. What reads as a live CRT
-   is the beam still painting the picture, so that gets a layer of its own: one
-   band brighter than the rest, drifting down the glass.
-
-   It hangs off a body pseudo-element rather than nesting inside .crt because it
-   lightens where .crt darkens. .crt multiplies, and its z-index makes it a
-   stacking context, so a child of it would have nothing to blend against but
-   .crt itself. One element, its own blend mode, no extra markup on seven
-   pages. */
-body::before{
-  content:""; position:fixed; left:0; right:0; top:0; z-index:51; height:24vh;
-  pointer-events:none; mix-blend-mode:plus-lighter; opacity:0;
-  background:linear-gradient(to bottom,
-    transparent,
-    rgba(155,109,212,.05) 38%,
-    rgba(0,232,255,.085) 50%,
-    rgba(155,109,212,.05) 62%,
-    transparent);
-  animation:beam 8.5s linear infinite;
 }
 
 /* ---- device shell (shared) ---- */
@@ -986,10 +971,6 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 @keyframes reveal{from{opacity:0; translate:0 16px;}}
 @keyframes vt-out{to{opacity:0; transform:scale(.994);}}
 @keyframes vt-in{from{opacity:0; transform:scale(1.006);}}
-@keyframes beam{
-  from{opacity:1; transform:translateY(-26vh);}
-  to{opacity:1; transform:translateY(100vh);}
-}
 /* One pass across the frame, then most of the cycle parked off the right-hand
    edge — a beam that never rests reads as a loading spinner. */
 @keyframes sweep{
@@ -1016,8 +997,8 @@ h1.hero .em{color:var(--cyan); text-shadow:var(--glow-c);}
 @media (prefers-reduced-motion:reduce){
   .rec,.cursor{animation:none;}
   .auth-card{animation:none;}
-  /* Both have opacity:0 in their base rule, so cutting the animation hides the
-     layer instead of stranding it mid-sweep. */
-  body::before,.frame::before{animation:none;}
+  /* opacity:0 in its base rule, so cutting the animation hides the layer instead
+     of stranding it mid-sweep. */
+  .frame::before{animation:none;}
   .btn{transition:none;}
 }
