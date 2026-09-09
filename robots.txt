@@ -1,0 +1,90 @@
+# rm8tes.com
+#
+# robots.txt is a request, not a fence. Crawlers that respect it will read this
+# and stay out; a scraper written to ignore it will not even fetch this file.
+# What it does buy us is the on-the-record part: an operator who takes our
+# content after this was published cannot claim they had no notice.
+#
+# The line this file draws is between two different things:
+#
+#   * Crawlers that COLLECT the site -- hoovering pages up for training corpora
+#     or for a competitor's backlink tooling. They take and give nothing back.
+#     Those are blocked below.
+#
+#   * Assistants that READ the site to answer somebody's question and cite us --
+#     ChatGPT search, Perplexity and friends. Those are deliberately still
+#     allowed. Blocking them would mean we stop appearing as an answer when
+#     someone asks an assistant about deposit-evidence apps, and for a product
+#     nobody has heard of yet that referral is worth more than the copying risk
+#     it avoids. See the commented-out group at the bottom -- that is the
+#     decision, not an oversight, and reversing it is one uncomment.
+#
+# Note that Google-Extended and Applebot-Extended are training-only opt-outs:
+# neither affects Google Search ranking or Apple's Spotlight/Siri results, so
+# blocking them below costs us no discoverability at all.
+
+
+# --- 1. Model training crawlers -----------------------------------------------
+
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
+User-agent: FacebookBot
+User-agent: Amazonbot
+User-agent: Bytespider
+User-agent: CCBot
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: AI2Bot
+User-agent: Diffbot
+User-agent: omgili
+User-agent: omgilibot
+User-agent: Webzio-Extended
+User-agent: ImagesiftBot
+User-agent: Timpibot
+User-agent: PanguBot
+User-agent: Kangaroo Bot
+User-agent: Scrapy
+Disallow: /
+
+
+# --- 2. Commercial content and backlink scrapers ------------------------------
+# Not AI, but the same shape of problem: these are the crawlers a competitor
+# points at a site to lift its copy and structure wholesale.
+
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: MJ12bot
+User-agent: DotBot
+User-agent: BLEXBot
+Disallow: /
+
+
+# --- 3. Everybody else --------------------------------------------------------
+# Search engines and AI answer engines both live here. This is how people find
+# us, so nothing is disallowed.
+
+User-agent: *
+Allow: /
+
+
+# --- Held in reserve: live AI answer engines ----------------------------------
+# Uncommenting this stops us being read and cited by AI assistants. Only do that
+# if we decide the citation traffic is no longer worth the copying exposure --
+# it is a real trade, not a free win, and it was consciously declined once.
+#
+# User-agent: OAI-SearchBot
+# User-agent: ChatGPT-User
+# User-agent: Claude-User
+# User-agent: Claude-SearchBot
+# User-agent: PerplexityBot
+# User-agent: Perplexity-User
+# User-agent: DuckAssistBot
+# User-agent: MistralAI-User
+# User-agent: YouBot
+# Disallow: /
