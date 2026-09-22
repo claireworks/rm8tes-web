@@ -1,10 +1,11 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>rm8tes — Get your deposit back, together</title>
-<meta name="description" content="rm8tes gives your flat a shared vault. Every flatmate's GPS-tagged, timestamped photos land in one case file at move-in, mirror at move-out, and only seal when the whole household agrees.">
+<title>rm8tes — shared deposit evidence for UK flatshares</title>
+<meta name="description" content="A shared vault for UK flatshares: every flatmate's GPS-tagged, timestamped photos in one case file at move-in and move-out, sealed when everyone agrees.">
+<link rel="canonical" href="https://rm8tes.com/">
 <!-- GitHub Pages cannot set response headers on a custom domain, so the policy
      is declared here instead. A <meta> CSP is enforced by the browser exactly
      like the header for everything below; the one directive it cannot carry is
@@ -23,11 +24,72 @@
 <link rel="stylesheet" href="assets/style.css">
 <!-- Social preview -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="rm8tes — Get your deposit back, together">
+<meta property="og:title" content="rm8tes — shared deposit evidence for UK flatshares">
 <meta property="og:description" content="One flat, one shared vault. Every flatmate's photos in one case file — sealed only when everybody agrees.">
 <meta property="og:image" content="https://rm8tes.com/assets/img/og-cover.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://rm8tes.com/assets/img/og-cover.jpg">
+<!-- Who we are, for search engines and assistants: the record they read to
+     answer "what is rm8tes, and who runs it?". A JSON-LD script is a data
+     block -- the browser parses it as text and never runs it -- so script-src
+     above does not apply and the page still has no inline JavaScript.
+
+     Nothing goes in here that is not already published and true. That is why
+     there is no offers/price node (the app is not publicly available) and no
+     aggregateRating (there are no reviews), whatever validators suggest. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://rm8tes.com/#organization",
+      "name": "rm8tes",
+      "legalName": "Roomates Ltd",
+      "alternateName": ["rm8tes app", "Roomates Ltd"],
+      "url": "https://rm8tes.com/",
+      "logo": "https://rm8tes.com/assets/img/icon.jpg",
+      "description": "rm8tes gives a UK rented household one shared, tamper-evident record of the condition of their flat, photographed by every flatmate and sealed by the household together.",
+      "foundingDate": "2025-11-03",
+      "identifier": {
+        "@type": "PropertyValue",
+        "propertyID": "Companies House company number",
+        "value": "16826260"
+      },
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "35 Welbeck Avenue",
+        "addressLocality": "Tunbridge Wells",
+        "postalCode": "TN4 9BD",
+        "addressCountry": "GB"
+      },
+      "areaServed": { "@type": "Country", "name": "United Kingdom" },
+      "sameAs": [
+        "https://www.instagram.com/rm8tes",
+        "https://find-and-update.company-information.service.gov.uk/company/16826260"
+      ]
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://rm8tes.com/#app",
+      "name": "rm8tes",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Android",
+      "url": "https://rm8tes.com/",
+      "publisher": { "@id": "https://rm8tes.com/#organization" },
+      "description": "Shared move-in and move-out evidence for UK flatshares. Every flatmate photographs the flat; photos are GPS-tagged, timestamped, SHA-256 fingerprinted and anchored to the Bitcoin blockchain; the household seals the record together. Private beta."
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://rm8tes.com/#website",
+      "url": "https://rm8tes.com/",
+      "name": "rm8tes",
+      "inLanguage": "en-GB",
+      "publisher": { "@id": "https://rm8tes.com/#organization" }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 

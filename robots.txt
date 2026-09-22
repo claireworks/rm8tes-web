@@ -5,11 +5,16 @@
 # What it does buy us is the on-the-record part: an operator who takes our
 # content after this was published cannot claim they had no notice.
 #
-# The line this file draws is between two different things:
+# The line this file draws is between three different things:
 #
 #   * Crawlers that COLLECT the site -- hoovering pages up for training corpora
 #     or for a competitor's backlink tooling. They take and give nothing back.
 #     Those are blocked below.
+#
+#   * A handful of training and grounding crawlers that also collect the site,
+#     but can make us KNOWN in return: a model that has read these pages can
+#     say what rm8tes is without having to search for it. Those are let in, in
+#     group 1b, and the reasoning is written down there.
 #
 #   * Assistants that READ the site to answer somebody's question and cite us --
 #     ChatGPT search, Perplexity and friends. Those are deliberately still
@@ -19,25 +24,25 @@
 #     it avoids. See the commented-out group at the bottom -- that is the
 #     decision, not an oversight, and reversing it is one uncomment.
 #
-# Note that Google-Extended and Applebot-Extended are training-only opt-outs:
-# neither affects Google Search ranking or Apple's Spotlight/Siri results, so
-# blocking them below costs us no discoverability at all.
+# Note that Google-Extended and Applebot-Extended are opt-outs rather than
+# crawlers of their own, and neither touches Google Search ranking, Google's AI
+# Overviews (those run on Googlebot) or Apple's Spotlight/Siri results. They
+# are not the same, though. Applebot-Extended covers training only.
+# Google-Extended also decides whether Gemini Apps may ground an answer in our
+# pages -- so blocking it did cost discoverability, which is part of why it
+# now sits in group 1b.
+
+# Every page we want found, for any crawler allowed to read it.
+Sitemap: https://rm8tes.com/sitemap.xml
 
 
 # --- 1. Model training crawlers -----------------------------------------------
 
-User-agent: GPTBot
-User-agent: ClaudeBot
-User-agent: anthropic-ai
-User-agent: Claude-Web
-User-agent: Google-Extended
-User-agent: Applebot-Extended
 User-agent: Meta-ExternalAgent
 User-agent: Meta-ExternalFetcher
 User-agent: FacebookBot
 User-agent: Amazonbot
 User-agent: Bytespider
-User-agent: CCBot
 User-agent: cohere-ai
 User-agent: cohere-training-data-crawler
 User-agent: AI2Bot
@@ -51,6 +56,25 @@ User-agent: PanguBot
 User-agent: Kangaroo Bot
 User-agent: Scrapy
 Disallow: /
+
+
+# --- 1b. Training and grounding crawlers, unblocked 2026-09-22 ----------------
+# These sat in group 1 until 2026-09-22. At zero visibility the asymmetry
+# is total: the cost of being copied is theoretical, the cost of being unknown
+# is measurable -- a search for our own name found nothing of ours. Being in a
+# model's training data, in Common Crawl's public corpus, or in Gemini's
+# grounding is how a product nobody has heard of gets named at all. It is a
+# one-way door for what has already been read: blocking again stops future
+# crawls, it does not recall past ones. Revisit at meaningful traffic.
+
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: anthropic-ai
+User-agent: Claude-Web
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+Allow: /
 
 
 # --- 2. Commercial content and backlink scrapers ------------------------------
